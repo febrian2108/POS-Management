@@ -28,6 +28,21 @@ export default function manifest(): MetadataRoute.Manifest {
         type: "image/png",
         purpose: "maskable"
       }
+    ],
+    screenshots: [
+      {
+        src: "/screenshot/desktop/Dashboard-owner-pos-desktop.png",
+        sizes: "1905x1080",
+        type: "image/png",
+        form_factor: "wide",
+        label: "Dashboard Owner POSKU (Desktop)"
+      },
+      {
+        src: "/screenshot/mobile/dashboard-pos-mobile.png",
+        sizes: "377x669",
+        type: "image/png",
+        label: "Dashboard POSKU (Mobile)"
+      }
     ]
   };
 }
