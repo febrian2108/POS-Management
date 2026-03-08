@@ -4,12 +4,15 @@ import { ProductProfitTable } from "@/components/admin/product-profit-table";
 import { Card } from "@/components/ui/card";
 import { FieldTooltip } from "@/components/ui/field-tooltip";
 import { requireOwner } from "@/lib/auth/session";
-import { getDashboardStats, type DashboardStats } from "@/lib/services/admin";
+import { getDashboardStats } from "@/lib/services/admin";
 import { formatRupiah } from "@/lib/utils";
 
 export default async function AdminDashboardPage() {
   const owner = await requireOwner();
+  type DashboardStats = Awaited<ReturnType<typeof getDashboardStats>>;
   const stats: DashboardStats = await getDashboardStats(owner.id);
+  type TopProductRow = DashboardStats["topProducts"][number];
+  type LowStockRow = DashboardStats["lowStocks"][number];
 
   return (
     <div className="space-y-6">
@@ -95,7 +98,7 @@ export default async function AdminDashboardPage() {
               {stats.topProducts.length === 0 ? (
                 <p className="text-sm text-[var(--muted)]">Belum ada data penjualan.</p>
               ) : null}
-              {stats.topProducts.map((row) => (
+              {stats.topProducts.map((row: TopProductRow) => (
                 <div
                   key={row.productId}
                   className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--card-solid)] px-3 py-2"
@@ -116,7 +119,7 @@ export default async function AdminDashboardPage() {
               {stats.lowStocks.length === 0 ? (
                 <p className="text-sm text-[var(--muted)]">Tidak ada stok menipis.</p>
               ) : null}
-              {stats.lowStocks.map((row) => (
+              {stats.lowStocks.map((row: LowStockRow) => (
                 <div
                   key={row.id}
                   className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--card-solid)] px-3 py-2"
