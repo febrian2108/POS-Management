@@ -11,9 +11,7 @@ export default async function PosPage() {
     return <main className="p-6">Akun worker belum di-assign ke cabang.</main>;
   }
 
-  const { products, dailySoldQty, dailyProfit, topSoldProductsToday } = await getPosData(
-    worker.workerProfile.branchId
-  );
+  const { products, dailySoldQty, dailyProfit } = await getPosData(worker.workerProfile.branchId);
 
   return (
     <div className="space-y-4">
@@ -29,7 +27,6 @@ export default async function PosPage() {
         branchId={worker.workerProfile.branchId}
         dailySoldQty={dailySoldQty}
         dailyProfit={dailyProfit}
-        topSoldProductsToday={topSoldProductsToday}
         products={products.map((p) => ({
           stockId: p.id,
           productId: p.product.id,

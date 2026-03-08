@@ -3,7 +3,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
-import { createWorkerAction, deleteWorkerAction } from "@/lib/actions/admin";
+import {
+  createWorkerAction,
+  deleteWorkerAction,
+  toggleWorkerStatusAction
+} from "@/lib/actions/admin";
 import { requireOwner } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 
@@ -81,12 +85,26 @@ export default async function WorkersPage() {
                   <TD>{row.branch.name}</TD>
                   <TD>{row.user.isActive ? "Aktif" : "Nonaktif"}</TD>
                   <TD>
-                    <form action={deleteWorkerAction}>
-                      <input type="hidden" name="workerId" value={row.userId} />
-                      <SubmitButton variant="danger" size="sm" loadingText="Menghapus...">
-                        Hapus Akun
-                      </SubmitButton>
-                    </form>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <form action={toggleWorkerStatusAction}>
+                        <input type="hidden" name="workerId" value={row.userId} />
+                        <input type="hidden" name="isActive" value={row.user.isActive ? "false" : "true"} />
+                        <SubmitButton
+                          size="sm"
+                          variant={row.user.isActive ? "outline" : "default"}
+                          loadingText="Memproses..."
+                        >
+                          {row.user.isActive ? "Nonaktifkan" : "Aktifkan"}
+                        </SubmitButton>
+                      </form>
+
+                      <form action={deleteWorkerAction}>
+                        <input type="hidden" name="workerId" value={row.userId} />
+                        <SubmitButton variant="danger" size="sm" loadingText="Menghapus...">
+                          Hapus Akun
+                        </SubmitButton>
+                      </form>
+                    </div>
                   </TD>
                 </TR>
               ))}

@@ -1,8 +1,7 @@
 import { Card } from "@/components/ui/card";
-import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
+import { WorkerHistoryFilterTable } from "@/components/pos/history-filter-table";
 import { requireWorker } from "@/lib/auth/session";
 import { getPosHistoryData } from "@/lib/services/pos";
-import { formatRupiah } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -24,36 +23,12 @@ export default async function PosHistoryPage() {
         </p>
       </div>
       <Card className="animate-fade-in">
-        <div className="overflow-auto rounded-xl border border-[var(--border)]">
-          <Table>
-            <THead>
-              <TR>
-                <TH>Waktu</TH>
-                <TH>Produk Terjual</TH>
-                <TH>Jumlah Barang</TH>
-                <TH>Keuntungan</TH>
-              </TR>
-            </THead>
-            <TBody>
-              {history.map((sale) => (
-                <TR key={sale.id}>
-                  <TD>{new Date(sale.createdAt).toLocaleString("id-ID")}</TD>
-                  <TD>
-                    <div className="space-y-1">
-                      {sale.products.map((product, idx) => (
-                        <p key={`${sale.id}-${idx}`} className="text-sm">
-                          {product.name} x{product.qty}
-                        </p>
-                      ))}
-                    </div>
-                  </TD>
-                  <TD>{sale.totalItems}</TD>
-                  <TD>{formatRupiah(sale.profit)}</TD>
-                </TR>
-              ))}
-            </TBody>
-          </Table>
-        </div>
+        <WorkerHistoryFilterTable
+          sales={history.map((sale) => ({
+            ...sale,
+            createdAt: sale.createdAt.toISOString()
+          }))}
+        />
       </Card>
     </div>
   );

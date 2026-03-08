@@ -1,10 +1,39 @@
 import { prisma } from "@/lib/prisma";
 
+function startOfDay(date: Date) {
+  const value = new Date(date);
+  value.setHours(0, 0, 0, 0);
+  return value;
+}
+
+function getWeekStart(date: Date) {
+  const value = startOfDay(date);
+  const mondayOffset = (value.getDay() + 6) % 7;
+  value.setDate(value.getDate() - mondayOffset);
+  return value;
+}
+
+function formatDayKey(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function formatMonthKey(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
 export async function getDashboardStats(ownerId: string) {
-  const trendDays = 14;
-  const trendStart = new Date();
-  trendStart.setHours(0, 0, 0, 0);
-  trendStart.setDate(trendStart.getDate() - (trendDays - 1));
+  const dailyBuckets = 30;
+  const weeklyBuckets = 12;
+  const monthlyBuckets = 12;
+
+  const today = startOfDay(new Date());
+  const dailyStart = new Date(today);
+  dailyStart.setDate(dailyStart.getDate() - (dailyBuckets - 1));
+
+  const weeklyStart = getWeekStart(new Date(today.getFullYear(), today.getMonth(), today.getDate() - (weeklyBuckets - 1) * 7));
+  const monthlyStart = new Date(today.getFullYear(), today.getMonth() - (monthlyBuckets - 1), 1);
+
+  const trendStart = monthlyStart;
 
   const [
     branchCount,
@@ -121,38 +150,110 @@ export async function getDashboardStats(ownerId: string) {
 
   const dayKeys: string[] = [];
   const dayLabels: string[] = [];
-  const dateFormatter = new Intl.DateTimeFormat("id-ID", {
+  const dailyFormatter = new Intl.DateTimeFormat("id-ID", {
     day: "2-digit",
     month: "short"
   });
 
-  for (let i = 0; i < trendDays; i += 1) {
-    const d = new Date(trendStart);
-    d.setDate(trendStart.getDate() + i);
-    dayKeys.push(d.toISOString().slice(0, 10));
-    dayLabels.push(dateFormatter.format(d));
+  for (let i = 0; i < dailyBuckets; i += 1) {
+    const d = new Date(dailyStart);
+    d.setDate(dailyStart.getDate() + i);
+    dayKeys.push(formatDayKey(d));
+    dayLabels.push(dailyFormatter.format(d));
+  }
+
+  const weekKeys: string[] = [];
+  const weekLabels: string[] = [];
+  const weeklyFormatter = new Intl.DateTimeFormat("id-ID", {
+    day: "2-digit",
+    month: "short"
+  });
+
+  for (let i = 0; i < weeklyBuckets; i += 1) {
+    const d = new Date(weeklyStart);
+    d.setDate(weeklyStart.getDate() + i * 7);
+    weekKeys.push(formatDayKey(d));
+    weekLabels.push(`Minggu ${weeklyFormatter.format(d)}`);
+  }
+
+  const monthKeys: string[] = [];
+  const monthLabels: string[] = [];
+  const monthlyFormatter = new Intl.DateTimeFormat("id-ID", {
+    month: "short",
+    year: "numeric"
+  });
+
+  for (let i = 0; i < monthlyBuckets; i += 1) {
+    const d = new Date(monthlyStart.getFullYear(), monthlyStart.getMonth() + i, 1);
+    monthKeys.push(formatMonthKey(d));
+    monthLabels.push(monthlyFormatter.format(d));
   }
 
   const dayIndexMap = new Map(dayKeys.map((key, idx) => [key, idx]));
-  const branchTrendMap = new Map(
-    branches.map((branch) => [branch.id, new Array<number>(trendDays).fill(0)])
+  const weekIndexMap = new Map(weekKeys.map((key, idx) => [key, idx]));
+  const monthIndexMap = new Map(monthKeys.map((key, idx) => [key, idx]));
+
+  const branchDailyTrendMap = new Map(
+    branches.map((branch) => [branch.id, new Array<number>(dailyBuckets).fill(0)])
+  );
+  const branchWeeklyTrendMap = new Map(
+    branches.map((branch) => [branch.id, new Array<number>(weeklyBuckets).fill(0)])
+  );
+  const branchMonthlyTrendMap = new Map(
+    branches.map((branch) => [branch.id, new Array<number>(monthlyBuckets).fill(0)])
   );
 
   for (const row of salesTrendRows) {
-    const dayKey = row.createdAt.toISOString().slice(0, 10);
+    const amount = Number(row.totalAmount);
+    const createdAt = new Date(row.createdAt);
+
+    const dayKey = formatDayKey(startOfDay(createdAt));
     const dayIndex = dayIndexMap.get(dayKey);
-    const dataPoints = branchTrendMap.get(row.branchId);
-    if (dayIndex === undefined || !dataPoints) continue;
-    dataPoints[dayIndex] += Number(row.totalAmount);
+    const dailyPoints = branchDailyTrendMap.get(row.branchId);
+    if (dayIndex !== undefined && dailyPoints) {
+      dailyPoints[dayIndex] += amount;
+    }
+
+    const weekKey = formatDayKey(getWeekStart(createdAt));
+    const weekIndex = weekIndexMap.get(weekKey);
+    const weeklyPoints = branchWeeklyTrendMap.get(row.branchId);
+    if (weekIndex !== undefined && weeklyPoints) {
+      weeklyPoints[weekIndex] += amount;
+    }
+
+    const monthKey = formatMonthKey(createdAt);
+    const monthIndex = monthIndexMap.get(monthKey);
+    const monthlyPoints = branchMonthlyTrendMap.get(row.branchId);
+    if (monthIndex !== undefined && monthlyPoints) {
+      monthlyPoints[monthIndex] += amount;
+    }
   }
 
   const branchSalesTrend = {
-    labels: dayLabels,
-    series: branches.map((branch) => ({
-      branchId: branch.id,
-      branchName: branch.name,
-      data: branchTrendMap.get(branch.id) ?? new Array<number>(trendDays).fill(0)
-    }))
+    daily: {
+      labels: dayLabels,
+      series: branches.map((branch) => ({
+        branchId: branch.id,
+        branchName: branch.name,
+        data: branchDailyTrendMap.get(branch.id) ?? new Array<number>(dailyBuckets).fill(0)
+      }))
+    },
+    weekly: {
+      labels: weekLabels,
+      series: branches.map((branch) => ({
+        branchId: branch.id,
+        branchName: branch.name,
+        data: branchWeeklyTrendMap.get(branch.id) ?? new Array<number>(weeklyBuckets).fill(0)
+      }))
+    },
+    monthly: {
+      labels: monthLabels,
+      series: branches.map((branch) => ({
+        branchId: branch.id,
+        branchName: branch.name,
+        data: branchMonthlyTrendMap.get(branch.id) ?? new Array<number>(monthlyBuckets).fill(0)
+      }))
+    }
   };
 
   const saleByProductMap = new Map(

@@ -13,7 +13,7 @@ function getTodayRange() {
 export async function getPosData(branchId: string) {
   const { start, end } = getTodayRange();
 
-  const [products, soldItemsToday, topProductsAgg] = await Promise.all([
+  const [products, soldItemsToday] = await Promise.all([
     prisma.branchStock.findMany({
       where: {
         branchId,
@@ -45,41 +45,8 @@ export async function getPosData(branchId: string) {
           }
         }
       }
-    }),
-    prisma.saleItem.groupBy({
-      by: ["productId"],
-      where: {
-        sale: {
-          branchId,
-          createdAt: {
-            gte: start,
-            lt: end
-          }
-        }
-      },
-      _sum: { qty: true },
-      orderBy: { _sum: { qty: "desc" } },
-      take: 8
     })
   ]);
-
-  const productNames = await prisma.product.findMany({
-    where: {
-      id: { in: topProductsAgg.map((item) => item.productId) }
-    },
-    select: {
-      id: true,
-      name: true
-    }
-  });
-
-  const productNameMap = new Map(productNames.map((item) => [item.id, item.name]));
-
-  const topSoldProductsToday = topProductsAgg.map((item) => ({
-    productId: item.productId,
-    productName: productNameMap.get(item.productId) ?? "Produk",
-    qty: item._sum.qty ?? 0
-  }));
 
   const dailySoldQty = soldItemsToday.reduce((acc, item) => acc + item.qty, 0);
   const dailyProfit = soldItemsToday.reduce((acc, item) => {
@@ -91,8 +58,7 @@ export async function getPosData(branchId: string) {
   return {
     products,
     dailySoldQty,
-    dailyProfit,
-    topSoldProductsToday
+    dailyProfit
   };
 }
 
@@ -129,6 +95,7 @@ export async function getPosHistoryData(branchId: string) {
       totalItems,
       profit,
       products: sale.items.map((item) => ({
+        productId: item.productId,
         name: item.product.name,
         qty: item.qty
       }))

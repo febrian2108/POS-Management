@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { Search, TrendingUp, Boxes, CalendarClock } from "lucide-react";
+import { Search, TrendingUp, Boxes, Printer } from "lucide-react";
 import { toast } from "sonner";
 
 import { createSaleAction } from "@/lib/actions/sale";
@@ -28,11 +28,143 @@ type CartItem = {
   stockQty: number;
 };
 
-type TopSoldToday = {
+type ReceiptItem = {
   productId: string;
   productName: string;
   qty: number;
+  sellingPrice: number;
+  subtotal: number;
 };
+
+type ReceiptPayload = {
+  saleId: string;
+  createdAt: string;
+  branchName: string;
+  workerName: string;
+  totalAmount: number;
+  paidAmount: number;
+  changeAmount: number;
+  items: ReceiptItem[];
+};
+
+function escapeHtml(text: string) {
+  return text
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function buildReceiptHtml(receipt: ReceiptPayload) {
+  const itemsHtml = receipt.items
+    .map(
+      (item) => `
+      <tr>
+        <td style="padding:4px 0;">
+          ${escapeHtml(item.productName)}
+          <div style="font-size:11px;color:#4b5563;">${item.qty} x ${formatRupiah(item.sellingPrice)}</div>
+        </td>
+        <td style="padding:4px 0;text-align:right;">${formatRupiah(item.subtotal)}</td>
+      </tr>
+    `
+    )
+    .join("");
+
+  const printedAt = new Date(receipt.createdAt).toLocaleString("id-ID");
+
+  return `
+    <!doctype html>
+    <html lang="id">
+      <head>
+        <meta charset="utf-8" />
+        <title>Struk ${escapeHtml(receipt.saleId)}</title>
+        <style>
+          @page {
+            size: 80mm auto;
+            margin: 4mm;
+          }
+          body {
+            margin: 0;
+            font-family: "Segoe UI", Tahoma, sans-serif;
+            color: #111827;
+            font-size: 12px;
+          }
+          .wrap {
+            width: 72mm;
+            margin: 0 auto;
+          }
+          .center {
+            text-align: center;
+          }
+          .muted {
+            color: #4b5563;
+          }
+          .line {
+            border-top: 1px dashed #6b7280;
+            margin: 8px 0;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+          }
+          .totals td {
+            padding: 2px 0;
+          }
+          .totals td:last-child {
+            text-align: right;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="wrap">
+          <div class="center">
+            <div style="font-weight:700;font-size:15px;">POSKU</div>
+            <div>${escapeHtml(receipt.branchName)}</div>
+          </div>
+          <div class="line"></div>
+          <div class="muted">No: ${escapeHtml(receipt.saleId)}</div>
+          <div class="muted">Waktu: ${escapeHtml(printedAt)}</div>
+          <div class="muted">Kasir: ${escapeHtml(receipt.workerName)}</div>
+          <div class="line"></div>
+          <table>
+            <tbody>
+              ${itemsHtml}
+            </tbody>
+          </table>
+          <div class="line"></div>
+          <table class="totals">
+            <tbody>
+              <tr><td>Total</td><td>${formatRupiah(receipt.totalAmount)}</td></tr>
+              <tr><td>Bayar</td><td>${formatRupiah(receipt.paidAmount)}</td></tr>
+              <tr><td>Kembalian</td><td>${formatRupiah(receipt.changeAmount)}</td></tr>
+            </tbody>
+          </table>
+          <div class="line"></div>
+          <div class="center muted">Terima kasih</div>
+        </div>
+      </body>
+    </html>
+  `;
+}
+
+function printReceipt(receipt: ReceiptPayload) {
+  const win = window.open("", "_blank", "width=420,height=700");
+
+  if (!win) {
+    toast.error("Popup cetak diblokir browser. Izinkan popup lalu coba cetak ulang.");
+    return;
+  }
+
+  win.document.open();
+  win.document.write(buildReceiptHtml(receipt));
+  win.document.close();
+  win.focus();
+  setTimeout(() => {
+    win.print();
+    win.close();
+  }, 220);
+}
 
 export function PosTerminal({
   workerName,
@@ -40,8 +172,7 @@ export function PosTerminal({
   branchId,
   products,
   dailySoldQty,
-  dailyProfit,
-  topSoldProductsToday
+  dailyProfit
 }: {
   workerName: string;
   branchName: string;
@@ -49,11 +180,11 @@ export function PosTerminal({
   products: PosProduct[];
   dailySoldQty: number;
   dailyProfit: number;
-  topSoldProductsToday: TopSoldToday[];
 }) {
   const [query, setQuery] = useState("");
   const [paidAmountInput, setPaidAmountInput] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [lastReceipt, setLastReceipt] = useState<ReceiptPayload | null>(null);
   const [pending, startTransition] = useTransition();
 
   const paidAmount = paidAmountInput === "" ? 0 : Number(paidAmountInput);
@@ -155,6 +286,12 @@ export function PosTerminal({
       if (result?.error) {
         toast.error(result.error);
         return;
+      }
+
+      const receipt = (result as { receipt?: ReceiptPayload })?.receipt;
+      if (receipt) {
+        setLastReceipt(receipt);
+        printReceipt(receipt);
       }
 
       toast.success(result?.success || "Transaksi sukses");
@@ -287,31 +424,18 @@ export function PosTerminal({
             <Button className="w-full" onClick={checkout} disabled={pending}>
               {pending ? "Menyimpan..." : "Simpan Transaksi"}
             </Button>
-          </div>
-        </Card>
 
-        <Card className="animate-fade-in">
-          <div className="mb-2 flex items-center justify-between">
-            <h2 className="font-semibold">Produk Terjual Hari Ini</h2>
-            <p className="flex items-center gap-1 text-xs text-[var(--muted)]">
-              <CalendarClock size={13} />
-              Auto-update
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            {topSoldProductsToday.length === 0 ? (
-              <p className="text-sm text-[var(--muted)]">Belum ada produk terjual hari ini.</p>
-            ) : null}
-            {topSoldProductsToday.map((item) => (
-              <div
-                key={item.productId}
-                className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--card-solid)] px-3 py-2"
+            {lastReceipt ? (
+              <Button
+                className="w-full"
+                variant="outline"
+                onClick={() => printReceipt(lastReceipt)}
+                type="button"
               >
-                <p className="text-sm">{item.productName}</p>
-                <p className="text-sm font-semibold">{item.qty} pcs</p>
-              </div>
-            ))}
+                <Printer size={14} />
+                Cetak Ulang Struk
+              </Button>
+            ) : null}
           </div>
         </Card>
       </div>

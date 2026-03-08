@@ -61,6 +61,7 @@ export async function createSaleAction(payload: unknown) {
 
     return {
       productId: item.productId,
+      productName: product.name,
       qty: item.qty,
       sellingPrice,
       subtotal
@@ -76,7 +77,7 @@ export async function createSaleAction(payload: unknown) {
 
   const changeAmount = paidAmount.sub(totalAmount);
 
-  await prisma.$transaction(async (tx) => {
+  const savedSale = await prisma.$transaction(async (tx) => {
     const sale = await tx.sale.create({
       data: {
         ownerId: branch.ownerId,
@@ -113,6 +114,11 @@ export async function createSaleAction(payload: unknown) {
         }
       });
     }
+
+    return {
+      id: sale.id,
+      createdAt: sale.createdAt
+    };
   });
 
   revalidatePath("/pos");
@@ -121,5 +127,23 @@ export async function createSaleAction(payload: unknown) {
   revalidatePath("/admin/sales");
   revalidatePath("/admin/stocks");
 
-  return { success: "Transaksi berhasil disimpan." };
+  return {
+    success: "Transaksi berhasil disimpan.",
+    receipt: {
+      saleId: savedSale.id,
+      createdAt: savedSale.createdAt.toISOString(),
+      branchName: worker.workerProfile.branch.name,
+      workerName: worker.fullName,
+      totalAmount: Number(totalAmount),
+      paidAmount: Number(paidAmount),
+      changeAmount: Number(changeAmount),
+      items: items.map((item) => ({
+        productId: item.productId,
+        productName: item.productName,
+        qty: item.qty,
+        sellingPrice: Number(item.sellingPrice),
+        subtotal: Number(item.subtotal)
+      }))
+    }
+  };
 }

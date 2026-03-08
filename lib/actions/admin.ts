@@ -15,7 +15,8 @@ import {
   stockBulkSchema,
   stockSchema,
   stockUpdateSchema,
-  workerSchema
+  workerSchema,
+  workerStatusSchema
 } from "@/lib/validators/master";
 
 function textOrNull(value: string | null) {
@@ -489,6 +490,33 @@ export async function deleteWorkerAction(formData: FormData): Promise<void> {
 
   const supabaseAdmin = getSupabaseAdminClient();
   await supabaseAdmin.auth.admin.deleteUser(workerProfile.userId);
+
+  revalidatePath("/admin/workers");
+  revalidatePath("/admin/dashboard");
+}
+
+export async function toggleWorkerStatusAction(formData: FormData): Promise<void> {
+  const owner = await requireOwner();
+  const parsed = workerStatusSchema.safeParse({
+    workerId: formData.get("workerId"),
+    isActive: formData.get("isActive")
+  });
+
+  if (!parsed.success) return;
+
+  const workerProfile = await prisma.workerProfile.findFirst({
+    where: {
+      userId: parsed.data.workerId,
+      branch: { ownerId: owner.id }
+    }
+  });
+
+  if (!workerProfile) return;
+
+  await prisma.user.update({
+    where: { id: workerProfile.userId },
+    data: { isActive: parsed.data.isActive }
+  });
 
   revalidatePath("/admin/workers");
   revalidatePath("/admin/dashboard");

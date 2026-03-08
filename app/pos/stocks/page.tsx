@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/card";
+import { FieldTooltip } from "@/components/ui/field-tooltip";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -56,11 +57,15 @@ export default async function PosStocksPage() {
         <h2 className="font-semibold">Tambah / Perbarui Stok Produk</h2>
         <form action={upsertWorkerStockAction} className="mt-4 grid gap-3 md:grid-cols-4">
           <div>
-            <Label>Produk</Label>
+            <Label className="flex items-center gap-1.5">
+              Produk
+              <FieldTooltip text="Pilih produk yang stoknya ingin Anda perbarui." />
+            </Label>
             <select
               name="productId"
               required
               className="h-10 w-full rounded-xl border border-[var(--border)] bg-[var(--card-solid)] px-3 text-sm"
+              title="Pilih produk"
             >
               <option value="">Pilih produk</option>
               {products.map((product) => (
@@ -71,12 +76,30 @@ export default async function PosStocksPage() {
             </select>
           </div>
           <div>
-            <Label>Jumlah Stok</Label>
-            <Input name="stockQty" type="number" min={0} required />
+            <Label className="flex items-center gap-1.5">
+              Jumlah Stok
+              <FieldTooltip text="Isi jumlah stok fisik saat ini untuk produk ini di cabang Anda." />
+            </Label>
+            <Input
+              name="stockQty"
+              type="number"
+              min={0}
+              required
+              title="Jumlah stok fisik saat ini"
+            />
           </div>
           <div>
-            <Label>Batas Minimum</Label>
-            <Input name="minStock" type="number" min={0} required />
+            <Label className="flex items-center gap-1.5">
+              Batas Minimum
+              <FieldTooltip text="Saat stok berada di angka ini atau lebih rendah, barang dianggap hampir habis." />
+            </Label>
+            <Input
+              name="minStock"
+              type="number"
+              min={0}
+              required
+              title="Batas minimum peringatan stok menipis"
+            />
           </div>
           <div className="flex items-end">
             <SubmitButton>Simpan</SubmitButton>
@@ -92,8 +115,18 @@ export default async function PosStocksPage() {
               <TR>
                 <TH>Produk</TH>
                 <TH>Kategori</TH>
-                <TH>Stok Saat Ini</TH>
-                <TH>Batas Minimum</TH>
+                <TH>
+                  <span className="inline-flex items-center gap-1.5">
+                    Stok Saat Ini
+                    <FieldTooltip text="Jumlah stok produk yang tersisa saat ini di cabang Anda." />
+                  </span>
+                </TH>
+                <TH>
+                  <span className="inline-flex items-center gap-1.5">
+                    Batas Minimum
+                    <FieldTooltip text="Angka minimal stok sebelum barang dianggap menipis." />
+                  </span>
+                </TH>
                 <TH>Aksi</TH>
               </TR>
             </THead>
@@ -115,6 +148,7 @@ export default async function PosStocksPage() {
                           defaultValue={row.stockQty}
                           className="w-24"
                           required
+                          title="Ubah jumlah stok fisik"
                         />
                         <Input
                           name="minStock"
@@ -123,6 +157,7 @@ export default async function PosStocksPage() {
                           defaultValue={row.minStock}
                           className="w-24"
                           required
+                          title="Ubah batas minimum stok"
                         />
                         <SubmitButton size="sm" loadingText="Menyimpan...">
                           Simpan

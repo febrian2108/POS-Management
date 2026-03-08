@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/card";
+import { FieldTooltip } from "@/components/ui/field-tooltip";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -41,11 +42,15 @@ export default async function StocksPage() {
         <form action={upsertStockBulkAction} className="mt-4 space-y-4">
           <div className="grid gap-3 md:grid-cols-3">
             <div>
-              <Label>Produk</Label>
+              <Label className="flex items-center gap-1.5">
+                Produk
+                <FieldTooltip text="Pilih produk yang ingin diatur stoknya." />
+              </Label>
               <select
                 name="productId"
                 required
                 className="h-10 w-full rounded-xl border border-[var(--border)] bg-[var(--card-solid)] px-3 text-sm"
+                title="Pilih produk"
               >
                 <option value="">Pilih produk</option>
                 {products.map((p) => (
@@ -56,17 +61,38 @@ export default async function StocksPage() {
               </select>
             </div>
             <div>
-              <Label>Jumlah Stok</Label>
-              <Input type="number" min={0} name="stockQty" required />
+              <Label className="flex items-center gap-1.5">
+                Jumlah Stok
+                <FieldTooltip text="Masukkan jumlah stok fisik terbaru yang tersedia di gudang/rak cabang." />
+              </Label>
+              <Input
+                type="number"
+                min={0}
+                name="stockQty"
+                required
+                title="Jumlah stok fisik terbaru"
+              />
             </div>
             <div>
-              <Label>Batas Minimum Stok</Label>
-              <Input type="number" min={0} name="minStock" required />
+              <Label className="flex items-center gap-1.5">
+                Batas Minimum Stok
+                <FieldTooltip text="Jika stok menyentuh angka ini, produk dianggap menipis dan perlu restok." />
+              </Label>
+              <Input
+                type="number"
+                min={0}
+                name="minStock"
+                required
+                title="Batas minimum untuk peringatan stok menipis"
+              />
             </div>
           </div>
 
           <div>
-            <Label>Pilih Cabang Tujuan</Label>
+            <Label className="flex items-center gap-1.5">
+              Pilih Cabang Tujuan
+              <FieldTooltip text="Centang satu atau beberapa cabang yang akan menerima pengaturan stok ini." />
+            </Label>
             <div className="mt-2 grid gap-2 rounded-xl border border-[var(--border)] bg-[var(--card-solid)] p-3 sm:grid-cols-2 lg:grid-cols-3">
               {branches.map((branch) => (
                 <label key={branch.id} className="flex items-center gap-2 text-sm">
@@ -106,8 +132,24 @@ export default async function StocksPage() {
                     <div className="flex flex-wrap items-center gap-2">
                       <form action={updateStockAction} className="flex items-center gap-2">
                         <input type="hidden" name="stockId" value={row.id} />
-                        <Input name="stockQty" type="number" min={0} defaultValue={row.stockQty} className="w-24" required />
-                        <Input name="minStock" type="number" min={0} defaultValue={row.minStock} className="w-24" required />
+                        <Input
+                          name="stockQty"
+                          type="number"
+                          min={0}
+                          defaultValue={row.stockQty}
+                          className="w-24"
+                          required
+                          title="Ubah jumlah stok fisik terbaru"
+                        />
+                        <Input
+                          name="minStock"
+                          type="number"
+                          min={0}
+                          defaultValue={row.minStock}
+                          className="w-24"
+                          required
+                          title="Ubah batas minimum stok menipis"
+                        />
                         <SubmitButton size="sm" loadingText="Menyimpan...">
                           Simpan
                         </SubmitButton>

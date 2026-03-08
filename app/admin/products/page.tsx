@@ -1,10 +1,9 @@
+import { ProductCreateForm } from "@/components/admin/product-create-form";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import {
-  createProductAction,
   deleteProductAction,
   updateProductAction
 } from "@/lib/actions/admin";
@@ -32,50 +31,7 @@ export default async function ProductsPage() {
 
       <Card className="animate-fade-in">
         <h2 className="font-semibold">Tambah Produk</h2>
-        <form action={createProductAction} className="mt-4 grid gap-3 md:grid-cols-4">
-          <div>
-            <Label>Nama</Label>
-            <Input name="name" required />
-          </div>
-          <div>
-            <Label>SKU</Label>
-            <Input name="sku" required />
-          </div>
-          <div>
-            <Label>Barcode</Label>
-            <Input name="barcode" />
-          </div>
-          <div>
-            <Label>Kategori</Label>
-            <select
-              name="categoryId"
-              className="h-10 w-full rounded-xl border border-[var(--border)] bg-[var(--card-solid)] px-3 text-sm"
-              required
-            >
-              <option value="">Pilih</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <Label>Harga Jual</Label>
-            <Input type="number" name="sellingPrice" min={0} required />
-          </div>
-          <div>
-            <Label>Harga Beli</Label>
-            <Input type="number" name="purchasePrice" min={0} required />
-          </div>
-          <div className="flex items-end gap-2">
-            <input type="checkbox" name="isActive" defaultChecked />
-            <Label>Aktif</Label>
-          </div>
-          <div className="md:col-span-4">
-            <SubmitButton>Simpan Produk</SubmitButton>
-          </div>
-        </form>
+        <ProductCreateForm categories={categories.map((item) => ({ id: item.id, name: item.name }))} />
       </Card>
 
       <Card className="animate-fade-in">

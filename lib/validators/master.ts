@@ -40,6 +40,11 @@ export const workerSchema = z.object({
   branchId: z.string().uuid()
 });
 
+export const workerStatusSchema = z.object({
+  workerId: z.string().uuid(),
+  isActive: z.coerce.boolean()
+});
+
 export const stockSchema = z.object({
   branchId: z.string().uuid(),
   productId: z.string().uuid(),
