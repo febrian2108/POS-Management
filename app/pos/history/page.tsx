@@ -13,6 +13,7 @@ export default async function PosHistoryPage() {
   }
 
   const history = await getPosHistoryData(worker.workerProfile.branchId);
+  type HistoryRow = (typeof history)[number];
 
   return (
     <div className="space-y-4">
@@ -24,7 +25,7 @@ export default async function PosHistoryPage() {
       </div>
       <Card className="animate-fade-in">
         <WorkerHistoryFilterTable
-          sales={history.map((sale) => ({
+          sales={history.map((sale: HistoryRow) => ({
             ...sale,
             createdAt: sale.createdAt.toISOString()
           }))}

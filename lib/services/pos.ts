@@ -1,5 +1,40 @@
 import { prisma } from "@/lib/prisma";
 
+export type PosDataItem = {
+  id: string;
+  stockQty: number;
+  product: {
+    id: string;
+    name: string;
+    sku: string;
+    sellingPrice: unknown;
+    category: {
+      id: string;
+      name: string;
+    };
+  };
+};
+
+export type PosDataResult = {
+  products: PosDataItem[];
+  dailySoldQty: number;
+  dailyProfit: number;
+};
+
+export type PosHistoryItem = {
+  productId: string;
+  name: string;
+  qty: number;
+};
+
+export type PosHistorySale = {
+  id: string;
+  createdAt: Date;
+  totalItems: number;
+  profit: number;
+  products: PosHistoryItem[];
+};
+
 function getTodayRange() {
   const start = new Date();
   start.setHours(0, 0, 0, 0);
@@ -10,7 +45,7 @@ function getTodayRange() {
   return { start, end };
 }
 
-export async function getPosData(branchId: string) {
+export async function getPosData(branchId: string): Promise<PosDataResult> {
   const { start, end } = getTodayRange();
 
   const [products, soldItemsToday] = await Promise.all([
@@ -71,7 +106,7 @@ export async function getPosData(branchId: string) {
   };
 }
 
-export async function getPosHistoryData(branchId: string) {
+export async function getPosHistoryData(branchId: string): Promise<PosHistorySale[]> {
   const sales = await prisma.sale.findMany({
     where: { branchId },
     include: {
