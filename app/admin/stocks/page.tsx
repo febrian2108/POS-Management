@@ -1,4 +1,7 @@
+import Link from "next/link";
+
 import { Card } from "@/components/ui/card";
+import { FileImportForm } from "@/components/ui/file-import-form";
 import { FieldTooltip } from "@/components/ui/field-tooltip";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,14 +12,27 @@ import {
   updateStockAction,
   upsertStockBulkAction
 } from "@/lib/actions/admin";
+import { importStocksFromExcelAction } from "@/lib/actions/imports";
 import { requireOwner } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 
-export default async function StocksPage() {
+export default async function StocksPage({
+  searchParams
+}: {
+  searchParams: Promise<{ branchId?: string; productId?: string }>;
+}) {
   const owner = await requireOwner();
+  const params = await searchParams;
+  const selectedBranchId = params.branchId ?? "all";
+  const selectedProductId = params.productId ?? "all";
+
   const [rows, branches, products] = await Promise.all([
     prisma.branchStock.findMany({
-      where: { branch: { ownerId: owner.id } },
+      where: {
+        branch: { ownerId: owner.id },
+        ...(selectedBranchId !== "all" ? { branchId: selectedBranchId } : {}),
+        ...(selectedProductId !== "all" ? { productId: selectedProductId } : {})
+      },
       include: { branch: true, product: true },
       orderBy: { updatedAt: "desc" }
     }),
@@ -32,6 +48,53 @@ export default async function StocksPage() {
           Kelola jumlah stok barang untuk setiap cabang dengan langkah yang lebih sederhana.
         </p>
       </div>
+
+      <Card className="animate-fade-in">
+        <h2 className="font-semibold">Filter Data Stok</h2>
+        <form className="mt-3 grid gap-3 md:grid-cols-[1fr_1fr_auto_auto]">
+          <div>
+            <Label>Filter Cabang</Label>
+            <select
+              name="branchId"
+              defaultValue={selectedBranchId}
+              className="h-10 w-full rounded-xl border border-[var(--border)] bg-[var(--card-solid)] px-3 text-sm"
+            >
+              <option value="all">Semua Cabang</option>
+              {branches.map((branch) => (
+                <option key={branch.id} value={branch.id}>
+                  {branch.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <Label>Filter Produk</Label>
+            <select
+              name="productId"
+              defaultValue={selectedProductId}
+              className="h-10 w-full rounded-xl border border-[var(--border)] bg-[var(--card-solid)] px-3 text-sm"
+            >
+              <option value="all">Semua Produk</option>
+              {products.map((product) => (
+                <option key={product.id} value={product.id}>
+                  {product.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-end">
+            <SubmitButton>Terapkan Filter</SubmitButton>
+          </div>
+          <div className="flex items-end">
+            <Link
+              href="/admin/stocks"
+              className="inline-flex h-10 items-center justify-center rounded-xl border border-[var(--border)] px-4 text-sm"
+            >
+              Reset
+            </Link>
+          </div>
+        </form>
+      </Card>
 
       <Card className="animate-fade-in">
         <h2 className="font-semibold">Tambah Stok Sekaligus ke Banyak Cabang</h2>
@@ -107,6 +170,29 @@ export default async function StocksPage() {
             <SubmitButton>Simpan ke Cabang Terpilih</SubmitButton>
           </div>
         </form>
+      </Card>
+
+      <Card className="animate-fade-in">
+        <h2 className="font-semibold">Import Stok via Excel</h2>
+        <p className="mt-1 text-sm text-[var(--muted)]">
+          Gunakan file Excel untuk memperbarui stok massal berdasarkan `branch_code` dan `product_sku`.
+        </p>
+        <div className="mt-3 grid gap-3 md:grid-cols-[1fr_auto]">
+          <FileImportForm
+            action={importStocksFromExcelAction}
+            submitLabel="Import Stok"
+            loadingText="Mengimpor..."
+          />
+          <Link
+            href="/templates/stocks-import-template.csv"
+            className="inline-flex h-10 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--card-solid)] px-4 text-sm"
+          >
+            Download Template CSV
+          </Link>
+        </div>
+        <div className="mt-3 rounded-xl border border-[var(--border)] bg-[var(--card-solid)] p-3 text-xs text-[var(--muted)]">
+          Kolom wajib: `branch_code`, `product_sku`, `stock_qty`, `min_stock`.
+        </div>
       </Card>
 
       <Card className="animate-fade-in">

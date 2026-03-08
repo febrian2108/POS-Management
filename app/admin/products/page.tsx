@@ -1,5 +1,8 @@
+import Link from "next/link";
+
 import { ProductCreateForm } from "@/components/admin/product-create-form";
 import { Card } from "@/components/ui/card";
+import { FileImportForm } from "@/components/ui/file-import-form";
 import { Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
@@ -7,15 +10,35 @@ import {
   deleteProductAction,
   updateProductAction
 } from "@/lib/actions/admin";
+import { importProductsFromExcelAction } from "@/lib/actions/imports";
 import { requireOwner } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 import { formatRupiah } from "@/lib/utils";
 
-export default async function ProductsPage() {
+export default async function ProductsPage({
+  searchParams
+}: {
+  searchParams: Promise<{ name?: string; categoryId?: string }>;
+}) {
   const owner = await requireOwner();
+  const params = await searchParams;
+  const selectedName = params.name?.trim() ?? "";
+  const selectedCategoryId = params.categoryId ?? "all";
+
   const [products, categories] = await Promise.all([
     prisma.product.findMany({
-      where: { ownerId: owner.id },
+      where: {
+        ownerId: owner.id,
+        ...(selectedName
+          ? {
+              name: {
+                contains: selectedName,
+                mode: "insensitive"
+              }
+            }
+          : {}),
+        ...(selectedCategoryId !== "all" ? { categoryId: selectedCategoryId } : {})
+      },
       include: { category: true },
       orderBy: { createdAt: "desc" }
     }),
@@ -35,6 +58,71 @@ export default async function ProductsPage() {
       </Card>
 
       <Card className="animate-fade-in">
+        <h2 className="font-semibold">Filter Produk</h2>
+        <form className="mt-3 grid gap-3 md:grid-cols-[1.4fr_1fr_auto_auto]">
+          <div>
+            <p className="mb-1 text-sm text-[var(--muted)]">Nama Produk</p>
+            <Input
+              name="name"
+              placeholder="Contoh: beras, minyak..."
+              defaultValue={selectedName}
+            />
+          </div>
+          <div>
+            <p className="mb-1 text-sm text-[var(--muted)]">Kategori</p>
+            <select
+              name="categoryId"
+              defaultValue={selectedCategoryId}
+              className="h-10 w-full rounded-xl border border-[var(--border)] bg-[var(--card-solid)] px-3 text-sm"
+            >
+              <option value="all">Semua Kategori</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-end">
+            <SubmitButton>Terapkan</SubmitButton>
+          </div>
+          <div className="flex items-end">
+            <Link
+              href="/admin/products"
+              className="inline-flex h-10 items-center justify-center rounded-xl border border-[var(--border)] px-4 text-sm"
+            >
+              Reset
+            </Link>
+          </div>
+        </form>
+      </Card>
+
+      <Card className="animate-fade-in">
+        <h2 className="font-semibold">Import Produk via Excel</h2>
+        <p className="mt-1 text-sm text-[var(--muted)]">
+          Upload `.xlsx`, `.xls`, atau `.csv` agar produk terinput massal dengan cepat.
+        </p>
+        <div className="mt-3 grid gap-3 md:grid-cols-[1fr_auto]">
+          <FileImportForm
+            action={importProductsFromExcelAction}
+            submitLabel="Import Produk"
+            loadingText="Mengimpor..."
+          />
+          <Link
+            href="/templates/products-import-template.csv"
+            className="inline-flex h-10 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--card-solid)] px-4 text-sm"
+          >
+            Download Template CSV
+          </Link>
+        </div>
+        <div className="mt-3 rounded-xl border border-[var(--border)] bg-[var(--card-solid)] p-3 text-xs text-[var(--muted)]">
+          Kolom wajib: `name`, `category_name`, `selling_price`, `purchase_price`. Kolom opsional:
+          `sku`, `barcode`, `is_active`.
+        </div>
+      </Card>
+
+      <Card className="animate-fade-in">
+        <div className="mb-2 text-xs text-[var(--muted)]">Menampilkan {products.length} produk</div>
         <div className="overflow-auto rounded-xl border border-[var(--border)]">
           <Table>
             <THead>

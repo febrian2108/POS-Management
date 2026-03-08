@@ -1,0 +1,4 @@
+name,sku,barcode,category_name,selling_price,purchase_price,is_active
+Beras Premium 5Kg,SKU-BERAS-PREMIUM-5KG,8991234567890,Sembako,78000,65000,true
+Minyak Goreng 2L,,8999876543210,Sembako,36000,32000,true
+Sabun Cuci Piring 800ml,SKU-SABUN-CUCI-PIRING-800ML,,Kebutuhan Rumah,18000,14000,true

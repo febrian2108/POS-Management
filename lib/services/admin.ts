@@ -21,10 +21,77 @@ function formatMonthKey(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
 
-export async function getDashboardStats(ownerId: string) {
+export type BranchTrendSeries = {
+  branchId: string;
+  branchName: string;
+  data: number[];
+};
+
+export type BranchTrendData = {
+  labels: string[];
+  series: BranchTrendSeries[];
+};
+
+export type DashboardStats = {
+  branchCount: number;
+  productCount: number;
+  workerCount: number;
+  salesCount: number;
+  salesAmount: number;
+  soldItems: number;
+  activeProductCount: number;
+  inactiveProductCount: number;
+  outOfStockProductCount: number;
+  totalGrossProfit: number;
+  totalInventoryValue: number;
+  lowStocks: Array<{
+    id: string;
+    stockQty: number;
+    minStock: number;
+    product: {
+      id: string;
+      name: string;
+    };
+    branch: {
+      id: string;
+      name: string;
+    };
+  }>;
+  topProducts: Array<{
+    productId: string;
+    productName: string;
+    qty: number;
+  }>;
+  branchSales: Array<{
+    branchId: string;
+    branchName: string;
+    totalAmount: number;
+    transactionCount: number;
+  }>;
+  branchSalesTrend: {
+    daily: BranchTrendData;
+    weekly: BranchTrendData;
+    monthly: BranchTrendData;
+    yearly: BranchTrendData;
+  };
+  productProfit: Array<{
+    productId: string;
+    productName: string;
+    sku: string;
+    isActive: boolean;
+    qtyMasuk: number;
+    nilaiMasuk: number;
+    qtyKeluar: number;
+    nilaiKeluar: number;
+    keuntunganKeluar: number;
+  }>;
+};
+
+export async function getDashboardStats(ownerId: string): Promise<DashboardStats> {
   const dailyBuckets = 30;
   const weeklyBuckets = 12;
   const monthlyBuckets = 12;
+  const yearlyBuckets = 6;
 
   const today = startOfDay(new Date());
   const dailyStart = new Date(today);
@@ -32,8 +99,9 @@ export async function getDashboardStats(ownerId: string) {
 
   const weeklyStart = getWeekStart(new Date(today.getFullYear(), today.getMonth(), today.getDate() - (weeklyBuckets - 1) * 7));
   const monthlyStart = new Date(today.getFullYear(), today.getMonth() - (monthlyBuckets - 1), 1);
+  const yearlyStart = new Date(today.getFullYear() - (yearlyBuckets - 1), 0, 1);
 
-  const trendStart = monthlyStart;
+  const trendStart = yearlyStart;
 
   const [
     branchCount,
@@ -189,9 +257,18 @@ export async function getDashboardStats(ownerId: string) {
     monthLabels.push(monthlyFormatter.format(d));
   }
 
+  const yearKeys: string[] = [];
+  const yearLabels: string[] = [];
+  for (let i = 0; i < yearlyBuckets; i += 1) {
+    const year = yearlyStart.getFullYear() + i;
+    yearKeys.push(String(year));
+    yearLabels.push(String(year));
+  }
+
   const dayIndexMap = new Map(dayKeys.map((key, idx) => [key, idx]));
   const weekIndexMap = new Map(weekKeys.map((key, idx) => [key, idx]));
   const monthIndexMap = new Map(monthKeys.map((key, idx) => [key, idx]));
+  const yearIndexMap = new Map(yearKeys.map((key, idx) => [key, idx]));
 
   const branchDailyTrendMap = new Map(
     branches.map((branch) => [branch.id, new Array<number>(dailyBuckets).fill(0)])
@@ -201,6 +278,9 @@ export async function getDashboardStats(ownerId: string) {
   );
   const branchMonthlyTrendMap = new Map(
     branches.map((branch) => [branch.id, new Array<number>(monthlyBuckets).fill(0)])
+  );
+  const branchYearlyTrendMap = new Map(
+    branches.map((branch) => [branch.id, new Array<number>(yearlyBuckets).fill(0)])
   );
 
   for (const row of salesTrendRows) {
@@ -227,6 +307,13 @@ export async function getDashboardStats(ownerId: string) {
     if (monthIndex !== undefined && monthlyPoints) {
       monthlyPoints[monthIndex] += amount;
     }
+
+    const year = String(createdAt.getFullYear());
+    const yearIndex = yearIndexMap.get(year);
+    const yearlyPoints = branchYearlyTrendMap.get(row.branchId);
+    if (yearIndex !== undefined && yearlyPoints) {
+      yearlyPoints[yearIndex] += amount;
+    }
   }
 
   const branchSalesTrend = {
@@ -252,6 +339,14 @@ export async function getDashboardStats(ownerId: string) {
         branchId: branch.id,
         branchName: branch.name,
         data: branchMonthlyTrendMap.get(branch.id) ?? new Array<number>(monthlyBuckets).fill(0)
+      }))
+    },
+    yearly: {
+      labels: yearLabels,
+      series: branches.map((branch) => ({
+        branchId: branch.id,
+        branchName: branch.name,
+        data: branchYearlyTrendMap.get(branch.id) ?? new Array<number>(yearlyBuckets).fill(0)
       }))
     }
   };

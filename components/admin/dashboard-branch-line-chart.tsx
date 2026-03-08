@@ -32,6 +32,7 @@ type TrendCollection = {
   daily: TrendData;
   weekly: TrendData;
   monthly: TrendData;
+  yearly: TrendData;
 };
 
 const LINE_COLORS = [
@@ -46,7 +47,7 @@ const LINE_COLORS = [
 ];
 
 export function DashboardBranchLineChart({ trends }: { trends: TrendCollection }) {
-  const [mode, setMode] = useState<"daily" | "weekly" | "monthly">("weekly");
+  const [mode, setMode] = useState<"daily" | "weekly" | "monthly" | "yearly">("weekly");
   const activeTrend = trends[mode];
 
   const hasData = activeTrend.series.some((series) => series.data.some((value) => value > 0));
@@ -112,12 +113,13 @@ export function DashboardBranchLineChart({ trends }: { trends: TrendCollection }
       <div className="flex justify-end">
         <select
           value={mode}
-          onChange={(e) => setMode(e.target.value as "daily" | "weekly" | "monthly")}
+          onChange={(e) => setMode(e.target.value as "daily" | "weekly" | "monthly" | "yearly")}
           className="h-9 rounded-xl border border-[var(--border)] bg-[var(--card-solid)] px-3 text-sm"
         >
           <option value="weekly">Mingguan (Default)</option>
           <option value="daily">Harian</option>
           <option value="monthly">Bulanan</option>
+          <option value="yearly">Tahunan</option>
         </select>
       </div>
       {!hasData ? (

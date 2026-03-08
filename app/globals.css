@@ -95,6 +95,25 @@ button:active {
   animation: fadeInUp 420ms ease both;
 }
 
+@keyframes notFoundPulse {
+  0% {
+    transform: translateY(0);
+    box-shadow: 0 0 0 rgba(24, 72, 93, 0);
+  }
+  50% {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 36px -24px color-mix(in oklab, var(--primary) 42%, transparent);
+  }
+  100% {
+    transform: translateY(0);
+    box-shadow: 0 0 0 rgba(24, 72, 93, 0);
+  }
+}
+
+.not-found-pulse {
+  animation: notFoundPulse 2.1s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;

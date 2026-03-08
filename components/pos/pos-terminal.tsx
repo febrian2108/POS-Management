@@ -1,10 +1,15 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { Search, TrendingUp, Boxes, Printer } from "lucide-react";
 import { toast } from "sonner";
 
 import { createSaleAction } from "@/lib/actions/sale";
+import {
+  enqueueSale,
+  getQueuedSalesCount,
+  syncQueuedSales
+} from "@/lib/client/offline-sale-queue";
 import { formatRupiah } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -185,6 +190,8 @@ export function PosTerminal({
   const [paidAmountInput, setPaidAmountInput] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [lastReceipt, setLastReceipt] = useState<ReceiptPayload | null>(null);
+  const [queuedCount, setQueuedCount] = useState(0);
+  const [syncingQueue, setSyncingQueue] = useState(false);
   const [pending, startTransition] = useTransition();
 
   const paidAmount = paidAmountInput === "" ? 0 : Number(paidAmountInput);
@@ -206,6 +213,41 @@ export function PosTerminal({
   );
 
   const change = paidAmount - subtotal;
+
+  useEffect(() => {
+    setQueuedCount(getQueuedSalesCount());
+
+    const updateQueueCounter = () => {
+      setQueuedCount(getQueuedSalesCount());
+    };
+
+    window.addEventListener("posku-offline-queue-updated", updateQueueCounter);
+
+    return () => {
+      window.removeEventListener("posku-offline-queue-updated", updateQueueCounter);
+    };
+  }, []);
+
+  async function handleSyncQueue() {
+    if (syncingQueue) return;
+    setSyncingQueue(true);
+
+    try {
+      const result = await syncQueuedSales();
+      if (result.synced > 0) {
+        toast.success(`${result.synced} transaksi offline berhasil dikirim.`);
+        setQueuedCount(result.remaining);
+        window.location.reload();
+        return;
+      }
+
+      if (result.remaining > 0) {
+        toast.error("Masih ada transaksi offline yang belum terkirim.");
+      }
+    } finally {
+      setSyncingQueue(false);
+    }
+  }
 
   function addToCart(product: PosProduct) {
     setCart((prev) => {
@@ -276,28 +318,45 @@ export function PosTerminal({
       return;
     }
 
+    const payload = {
+      branchId,
+      paidAmount,
+      items: cart.map((item) => ({ productId: item.productId, qty: item.qty }))
+    };
+
     startTransition(async () => {
-      const result = await createSaleAction({
-        branchId,
-        paidAmount,
-        items: cart.map((item) => ({ productId: item.productId, qty: item.qty }))
-      });
+      try {
+        const result = await createSaleAction(payload);
 
-      if (result?.error) {
-        toast.error(result.error);
-        return;
+        if ("error" in result) {
+          toast.error(result.error);
+          return;
+        }
+
+        const receipt = result.receipt;
+        if (receipt) {
+          setLastReceipt(receipt);
+          printReceipt(receipt);
+        }
+
+        toast.success(result.success || "Transaksi sukses");
+        setCart([]);
+        setPaidAmountInput("");
+        window.location.reload();
+      } catch {
+        const saved = enqueueSale(payload);
+        if (saved) {
+          toast.warning(
+            "Koneksi terputus. Transaksi disimpan sementara dan akan dikirim saat online."
+          );
+          setCart([]);
+          setPaidAmountInput("");
+          setQueuedCount(getQueuedSalesCount());
+          return;
+        }
+
+        toast.error("Transaksi gagal diproses.");
       }
-
-      const receipt = (result as { receipt?: ReceiptPayload })?.receipt;
-      if (receipt) {
-        setLastReceipt(receipt);
-        printReceipt(receipt);
-      }
-
-      toast.success(result?.success || "Transaksi sukses");
-      setCart([]);
-      setPaidAmountInput("");
-      window.location.reload();
     });
   }
 
@@ -311,8 +370,27 @@ export function PosTerminal({
               {workerName} - {branchName}
             </h2>
           </div>
-          <p className="text-sm text-[var(--muted)]">Klik produk untuk tambah ke keranjang</p>
+          <div className="flex items-center gap-2">
+            {queuedCount > 0 ? (
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={syncingQueue}
+                onClick={handleSyncQueue}
+              >
+                {syncingQueue ? "Sync..." : `Sync Offline (${queuedCount})`}
+              </Button>
+            ) : null}
+            <p className="text-sm text-[var(--muted)]">Klik produk untuk tambah ke keranjang</p>
+          </div>
         </div>
+
+        {queuedCount > 0 ? (
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--card-solid)] px-3 py-2 text-xs text-[var(--muted)]">
+            Ada {queuedCount} transaksi offline yang belum terkirim. Sistem akan mencoba kirim ulang
+            saat jaringan kembali normal.
+          </div>
+        ) : null}
 
         <div className="relative">
           <Search

@@ -8,9 +8,20 @@ export default async function SalesPage() {
   const [sales, branches, workers] = await Promise.all([
     prisma.sale.findMany({
       where: { ownerId: owner.id },
-      include: { branch: true, worker: true, items: true },
-      orderBy: { createdAt: "desc" },
-      take: 300
+      include: {
+        branch: true,
+        worker: true,
+        items: {
+          include: {
+            product: {
+              select: {
+                purchasePrice: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: { createdAt: "desc" }
     }),
     prisma.branch.findMany({
       where: { ownerId: owner.id },
@@ -52,7 +63,12 @@ export default async function SalesPage() {
           workerId: sale.workerId,
           workerName: sale.worker.fullName,
           totalAmount: Number(sale.totalAmount),
-          itemCount: sale.items.reduce((acc, item) => acc + item.qty, 0)
+          itemCount: sale.items.reduce((acc, item) => acc + item.qty, 0),
+          profitAmount: sale.items.reduce((acc, item) => {
+            const purchase = Number(item.product.purchasePrice);
+            const sell = Number(item.sellingPrice);
+            return acc + (sell - purchase) * item.qty;
+          }, 0)
         }))}
       />
     </div>

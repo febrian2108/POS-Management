@@ -4,12 +4,12 @@ import { ProductProfitTable } from "@/components/admin/product-profit-table";
 import { Card } from "@/components/ui/card";
 import { FieldTooltip } from "@/components/ui/field-tooltip";
 import { requireOwner } from "@/lib/auth/session";
-import { getDashboardStats } from "@/lib/services/admin";
+import { getDashboardStats, type DashboardStats } from "@/lib/services/admin";
 import { formatRupiah } from "@/lib/utils";
 
 export default async function AdminDashboardPage() {
   const owner = await requireOwner();
-  const stats = await getDashboardStats(owner.id);
+  const stats: DashboardStats = await getDashboardStats(owner.id);
 
   return (
     <div className="space-y-6">
