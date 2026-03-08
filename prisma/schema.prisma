@@ -1,0 +1,143 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  OWNER
+  WORKER
+}
+
+model User {
+  id             String          @id @db.Uuid
+  email          String          @unique
+  fullName       String
+  role           Role
+  isActive       Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  ownedBranches  Branch[]        @relation("OwnerBranches")
+  workerProfile  WorkerProfile?
+  sales          Sale[]          @relation("WorkerSales")
+}
+
+model Branch {
+  id             String          @id @default(uuid()) @db.Uuid
+  ownerId        String          @db.Uuid
+  name           String
+  code           String          @unique
+  address        String?
+  isActive       Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  owner          User            @relation("OwnerBranches", fields: [ownerId], references: [id], onDelete: Cascade)
+  workers        WorkerProfile[]
+  stocks         BranchStock[]
+  sales          Sale[]
+
+  @@index([ownerId])
+}
+
+model WorkerProfile {
+  id             String          @id @default(uuid()) @db.Uuid
+  userId         String          @unique @db.Uuid
+  branchId       String          @db.Uuid
+  createdAt      DateTime        @default(now())
+
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  branch         Branch          @relation(fields: [branchId], references: [id], onDelete: Restrict)
+
+  @@index([branchId])
+}
+
+model Category {
+  id             String          @id @default(uuid()) @db.Uuid
+  ownerId        String          @db.Uuid
+  name           String
+  description    String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  products       Product[]
+
+  @@unique([ownerId, name])
+  @@index([ownerId])
+}
+
+model Product {
+  id             String          @id @default(uuid()) @db.Uuid
+  ownerId        String          @db.Uuid
+  name           String
+  sku            String
+  barcode        String?
+  categoryId     String          @db.Uuid
+  sellingPrice   Decimal         @db.Decimal(14, 2)
+  purchasePrice  Decimal         @db.Decimal(14, 2)
+  isActive       Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  category       Category        @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  stocks         BranchStock[]
+  saleItems      SaleItem[]
+
+  @@unique([ownerId, sku])
+  @@index([ownerId])
+  @@index([categoryId])
+}
+
+model BranchStock {
+  id             String          @id @default(uuid()) @db.Uuid
+  branchId       String          @db.Uuid
+  productId      String          @db.Uuid
+  stockQty       Int             @default(0)
+  minStock       Int             @default(0)
+  updatedAt      DateTime        @updatedAt
+
+  branch         Branch          @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  product        Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([branchId, productId])
+  @@index([productId])
+}
+
+model Sale {
+  id             String          @id @default(uuid()) @db.Uuid
+  ownerId        String          @db.Uuid
+  branchId       String          @db.Uuid
+  workerId       String          @db.Uuid
+  totalAmount    Decimal         @db.Decimal(14, 2)
+  paidAmount     Decimal         @db.Decimal(14, 2)
+  changeAmount   Decimal         @db.Decimal(14, 2)
+  createdAt      DateTime        @default(now())
+
+  branch         Branch          @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  worker         User            @relation("WorkerSales", fields: [workerId], references: [id], onDelete: Restrict)
+  items          SaleItem[]
+
+  @@index([ownerId, createdAt])
+  @@index([branchId, createdAt])
+  @@index([workerId, createdAt])
+}
+
+model SaleItem {
+  id             String          @id @default(uuid()) @db.Uuid
+  saleId         String          @db.Uuid
+  productId      String          @db.Uuid
+  qty            Int
+  sellingPrice   Decimal         @db.Decimal(14, 2)
+  subtotal       Decimal         @db.Decimal(14, 2)
+
+  sale           Sale            @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product        Product         @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([saleId])
+  @@index([productId])
+}

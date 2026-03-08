@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f6f7f8;
+  --foreground: #1f2937;
+  --card: #ffffff;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --primary: #1f6f78;
+  --primary-foreground: #f9fafb;
+  --danger: #b91c1c;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  min-height: 100vh;
+}
+
+input,
+select,
+textarea,
+button {
+  outline: none;
+}
