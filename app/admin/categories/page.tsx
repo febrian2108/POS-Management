@@ -13,6 +13,7 @@ export default async function CategoriesPage() {
     where: { ownerId: owner.id },
     orderBy: { createdAt: "desc" }
   });
+  type CategoryRow = (typeof categories)[number];
 
   return (
     <div className="space-y-6">
@@ -48,7 +49,7 @@ export default async function CategoriesPage() {
               </TR>
             </THead>
             <TBody>
-              {categories.map((row) => (
+              {categories.map((row: CategoryRow) => (
                 <TR key={row.id}>
                   <TD>{row.name}</TD>
                   <TD>{row.description || "-"}</TD>

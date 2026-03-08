@@ -44,6 +44,8 @@ export default async function ProductsPage({
     }),
     prisma.category.findMany({ where: { ownerId: owner.id }, orderBy: { name: "asc" } })
   ]);
+  type ProductRow = (typeof products)[number];
+  type CategoryRow = (typeof categories)[number];
 
   return (
     <div className="space-y-6">
@@ -54,7 +56,7 @@ export default async function ProductsPage({
 
       <Card className="animate-fade-in">
         <h2 className="font-semibold">Tambah Produk</h2>
-        <ProductCreateForm categories={categories.map((item) => ({ id: item.id, name: item.name }))} />
+        <ProductCreateForm categories={categories.map((item: CategoryRow) => ({ id: item.id, name: item.name }))} />
       </Card>
 
       <Card className="animate-fade-in">
@@ -76,7 +78,7 @@ export default async function ProductsPage({
               className="h-10 w-full rounded-xl border border-[var(--border)] bg-[var(--card-solid)] px-3 text-sm"
             >
               <option value="all">Semua Kategori</option>
-              {categories.map((category) => (
+              {categories.map((category: CategoryRow) => (
                 <option key={category.id} value={category.id}>
                   {category.name}
                 </option>
@@ -137,7 +139,7 @@ export default async function ProductsPage({
               </TR>
             </THead>
             <TBody>
-              {products.map((row) => {
+              {products.map((row: ProductRow) => {
                 const profit = Number(row.sellingPrice) - Number(row.purchasePrice);
                 return (
                   <TR key={row.id}>
@@ -162,7 +164,7 @@ export default async function ProductsPage({
                               className="h-10 w-full rounded-xl border border-[var(--border)] bg-[var(--card-solid)] px-3 text-sm"
                               required
                             >
-                              {categories.map((c) => (
+                              {categories.map((c: CategoryRow) => (
                                 <option key={c.id} value={c.id}>
                                   {c.name}
                                 </option>

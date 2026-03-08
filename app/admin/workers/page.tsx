@@ -21,6 +21,8 @@ export default async function WorkersPage() {
     }),
     prisma.branch.findMany({ where: { ownerId: owner.id }, orderBy: { name: "asc" } })
   ]);
+  type WorkerRow = (typeof workers)[number];
+  type BranchRow = (typeof branches)[number];
 
   return (
     <div className="space-y-6">
@@ -52,7 +54,7 @@ export default async function WorkersPage() {
               className="h-10 w-full rounded-xl border border-[var(--border)] bg-[var(--card-solid)] px-3 text-sm"
             >
               <option value="">Pilih</option>
-              {branches.map((b) => (
+              {branches.map((b: BranchRow) => (
                 <option key={b.id} value={b.id}>
                   {b.name}
                 </option>
@@ -78,7 +80,7 @@ export default async function WorkersPage() {
               </TR>
             </THead>
             <TBody>
-              {workers.map((row) => (
+              {workers.map((row: WorkerRow) => (
                 <TR key={row.id}>
                   <TD>{row.user.fullName}</TD>
                   <TD>{row.user.email}</TD>

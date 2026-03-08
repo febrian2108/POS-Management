@@ -16,6 +16,7 @@ export default async function BranchesPage() {
     where: { ownerId: owner.id },
     orderBy: { createdAt: "desc" }
   });
+  type BranchRow = (typeof branches)[number];
 
   return (
     <div className="space-y-6">
@@ -41,7 +42,7 @@ export default async function BranchesPage() {
               </TR>
             </THead>
             <TBody>
-              {branches.map((row) => (
+              {branches.map((row: BranchRow) => (
                 <TR key={row.id}>
                   <TD>{row.name}</TD>
                   <TD>{row.code}</TD>

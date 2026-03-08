@@ -39,6 +39,9 @@ export default async function StocksPage({
     prisma.branch.findMany({ where: { ownerId: owner.id }, orderBy: { name: "asc" } }),
     prisma.product.findMany({ where: { ownerId: owner.id }, orderBy: { name: "asc" } })
   ]);
+  type StockRow = (typeof rows)[number];
+  type BranchRow = (typeof branches)[number];
+  type ProductRow = (typeof products)[number];
 
   return (
     <div className="space-y-6">
@@ -60,7 +63,7 @@ export default async function StocksPage({
               className="h-10 w-full rounded-xl border border-[var(--border)] bg-[var(--card-solid)] px-3 text-sm"
             >
               <option value="all">Semua Cabang</option>
-              {branches.map((branch) => (
+              {branches.map((branch: BranchRow) => (
                 <option key={branch.id} value={branch.id}>
                   {branch.name}
                 </option>
@@ -75,7 +78,7 @@ export default async function StocksPage({
               className="h-10 w-full rounded-xl border border-[var(--border)] bg-[var(--card-solid)] px-3 text-sm"
             >
               <option value="all">Semua Produk</option>
-              {products.map((product) => (
+              {products.map((product: ProductRow) => (
                 <option key={product.id} value={product.id}>
                   {product.name}
                 </option>
@@ -116,7 +119,7 @@ export default async function StocksPage({
                 title="Pilih produk"
               >
                 <option value="">Pilih produk</option>
-                {products.map((p) => (
+                {products.map((p: ProductRow) => (
                   <option key={p.id} value={p.id}>
                     {p.name}
                   </option>
@@ -157,7 +160,7 @@ export default async function StocksPage({
               <FieldTooltip text="Centang satu atau beberapa cabang yang akan menerima pengaturan stok ini." />
             </Label>
             <div className="mt-2 grid gap-2 rounded-xl border border-[var(--border)] bg-[var(--card-solid)] p-3 sm:grid-cols-2 lg:grid-cols-3">
-              {branches.map((branch) => (
+              {branches.map((branch: BranchRow) => (
                 <label key={branch.id} className="flex items-center gap-2 text-sm">
                   <input type="checkbox" name="branchIds" value={branch.id} className="h-4 w-4" />
                   {branch.name}
@@ -208,7 +211,7 @@ export default async function StocksPage({
               </TR>
             </THead>
             <TBody>
-              {rows.map((row) => (
+              {rows.map((row: StockRow) => (
                 <TR key={row.id}>
                   <TD>{row.branch.name}</TD>
                   <TD>{row.product.name}</TD>

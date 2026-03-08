@@ -42,6 +42,8 @@ export default async function PosStocksPage() {
       include: { category: true }
     })
   ]);
+  type StockRow = (typeof rows)[number];
+  type ProductRow = (typeof products)[number];
 
   return (
     <div className="space-y-6">
@@ -68,7 +70,7 @@ export default async function PosStocksPage() {
               title="Pilih produk"
             >
               <option value="">Pilih produk</option>
-              {products.map((product) => (
+              {products.map((product: ProductRow) => (
                 <option key={product.id} value={product.id}>
                   {product.name} ({product.category.name})
                 </option>
@@ -131,7 +133,7 @@ export default async function PosStocksPage() {
               </TR>
             </THead>
             <TBody>
-              {rows.map((row) => (
+              {rows.map((row: StockRow) => (
                 <TR key={row.id}>
                   <TD>{row.product.name}</TD>
                   <TD>{row.product.category.name}</TD>

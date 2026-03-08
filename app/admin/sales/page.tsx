@@ -39,6 +39,8 @@ export default async function SalesPage() {
       }
     })
   ]);
+  type WorkerRow = (typeof workers)[number];
+  type SaleRow = (typeof sales)[number];
 
   return (
     <div className="space-y-6">
@@ -51,11 +53,11 @@ export default async function SalesPage() {
 
       <SalesAnalyticsPanel
         branches={branches}
-        workers={workers.map((worker) => ({
+        workers={workers.map((worker: WorkerRow) => ({
           id: worker.userId,
           fullName: worker.user.fullName
         }))}
-        sales={sales.map((sale) => ({
+        sales={sales.map((sale: SaleRow) => ({
           id: sale.id,
           createdAt: sale.createdAt.toISOString(),
           branchId: sale.branchId,

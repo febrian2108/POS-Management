@@ -12,6 +12,7 @@ export default async function PosPage() {
   }
 
   const { products, dailySoldQty, dailyProfit } = await getPosData(worker.workerProfile.branchId);
+  type ProductRow = (typeof products)[number];
 
   return (
     <div className="space-y-4">
@@ -27,7 +28,7 @@ export default async function PosPage() {
         branchId={worker.workerProfile.branchId}
         dailySoldQty={dailySoldQty}
         dailyProfit={dailyProfit}
-        products={products.map((p) => ({
+        products={products.map((p: ProductRow) => ({
           stockId: p.id,
           productId: p.product.id,
           name: p.product.name,
