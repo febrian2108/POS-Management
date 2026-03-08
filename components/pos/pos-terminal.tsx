@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { Search } from "lucide-react";
+import { Search, TrendingUp, Boxes, CalendarClock } from "lucide-react";
 import { toast } from "sonner";
 
 import { createSaleAction } from "@/lib/actions/sale";
@@ -9,7 +9,6 @@ import { formatRupiah } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 
 type PosProduct = {
   stockId: string;
@@ -21,13 +20,6 @@ type PosProduct = {
   categoryName: string;
 };
 
-type RecentSale = {
-  id: string;
-  totalAmount: number;
-  createdAt: string;
-  workerName: string;
-};
-
 type CartItem = {
   productId: string;
   name: string;
@@ -36,23 +28,35 @@ type CartItem = {
   stockQty: number;
 };
 
+type TopSoldToday = {
+  productId: string;
+  productName: string;
+  qty: number;
+};
+
 export function PosTerminal({
   workerName,
   branchName,
   branchId,
   products,
-  recentSales
+  dailySoldQty,
+  dailyProfit,
+  topSoldProductsToday
 }: {
   workerName: string;
   branchName: string;
   branchId: string;
   products: PosProduct[];
-  recentSales: RecentSale[];
+  dailySoldQty: number;
+  dailyProfit: number;
+  topSoldProductsToday: TopSoldToday[];
 }) {
   const [query, setQuery] = useState("");
-  const [paidAmount, setPaidAmount] = useState(0);
+  const [paidAmountInput, setPaidAmountInput] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [pending, startTransition] = useTransition();
+
+  const paidAmount = paidAmountInput === "" ? 0 : Number(paidAmountInput);
 
   const filtered = useMemo(() => {
     if (!query) return products;
@@ -131,6 +135,11 @@ export function PosTerminal({
       return;
     }
 
+    if (!paidAmountInput) {
+      toast.error("Masukkan jumlah uang yang dibayar pelanggan");
+      return;
+    }
+
     if (paidAmount < subtotal) {
       toast.error("Jumlah bayar kurang");
       return;
@@ -150,17 +159,17 @@ export function PosTerminal({
 
       toast.success(result?.success || "Transaksi sukses");
       setCart([]);
-      setPaidAmount(0);
+      setPaidAmountInput("");
       window.location.reload();
     });
   }
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[1.3fr_0.9fr]">
-      <Card className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
+    <div className="grid gap-4 xl:grid-cols-[1.35fr_0.95fr]">
+      <Card className="animate-fade-in space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">Kasir Aktif</p>
+            <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">Transaksi Cepat</p>
             <h2 className="text-lg font-semibold">
               {workerName} - {branchName}
             </h2>
@@ -169,7 +178,10 @@ export function PosTerminal({
         </div>
 
         <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]" size={16} />
+          <Search
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]"
+            size={16}
+          />
           <Input
             className="pl-9"
             placeholder="Cari nama, SKU, atau kategori..."
@@ -178,7 +190,7 @@ export function PosTerminal({
           />
         </div>
 
-        <div className="grid max-h-[510px] gap-2 overflow-auto pr-1">
+        <div className="grid max-h-[520px] gap-2 overflow-auto pr-1">
           {filtered.map((product) => (
             <button
               key={product.productId}
@@ -188,7 +200,7 @@ export function PosTerminal({
               <div>
                 <p className="font-medium">{product.name}</p>
                 <p className="text-xs text-[var(--muted)]">
-                  {product.sku} - stok: {product.stockQty}
+                  {product.sku} - {product.categoryName} - stok: {product.stockQty}
                 </p>
               </div>
               <p className="font-semibold">{formatRupiah(product.sellingPrice)}</p>
@@ -197,92 +209,112 @@ export function PosTerminal({
         </div>
       </Card>
 
-      <Card className="space-y-3">
-        <h2 className="text-lg font-semibold">Keranjang</h2>
+      <div className="space-y-4">
+        <Card className="animate-fade-in grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--card-solid)] p-3">
+            <p className="flex items-center gap-2 text-xs uppercase tracking-[0.12em] text-[var(--muted)]">
+              <Boxes size={14} />
+              Barang Terjual Hari Ini
+            </p>
+            <p className="mt-1 text-2xl font-semibold">{dailySoldQty}</p>
+          </div>
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--card-solid)] p-3">
+            <p className="flex items-center gap-2 text-xs uppercase tracking-[0.12em] text-[var(--muted)]">
+              <TrendingUp size={14} />
+              Keuntungan Hari Ini
+            </p>
+            <p className="mt-1 text-2xl font-semibold">{formatRupiah(dailyProfit)}</p>
+          </div>
+        </Card>
 
-        <div className="max-h-[320px] space-y-2 overflow-auto pr-1">
-          {cart.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-[var(--border)] p-4 text-sm text-[var(--muted)]">
-              Belum ada item di keranjang.
-            </div>
-          ) : null}
+        <Card className="animate-fade-in space-y-3">
+          <h2 className="text-lg font-semibold">Keranjang</h2>
 
-          {cart.map((item) => (
-            <div key={item.productId} className="rounded-xl border border-[var(--border)] bg-[var(--card-solid)] p-3">
-              <p className="font-medium">{item.name}</p>
-              <div className="mt-2 flex items-center gap-2">
-                <Input
-                  type="number"
-                  min={1}
-                  max={item.stockQty}
-                  value={item.qty}
-                  onChange={(e) => setQty(item.productId, Number(e.target.value))}
-                />
-                <Button variant="danger" size="sm" onClick={() => removeItem(item.productId)}>
-                  Hapus
-                </Button>
+          <div className="max-h-[260px] space-y-2 overflow-auto pr-1">
+            {cart.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-[var(--border)] p-4 text-sm text-[var(--muted)]">
+                Belum ada item di keranjang.
               </div>
-              <p className="mt-2 text-sm text-[var(--muted)]">
-                Subtotal: {formatRupiah(item.qty * item.sellingPrice)}
-              </p>
-            </div>
-          ))}
-        </div>
+            ) : null}
 
-        <div className="space-y-3 border-t border-[var(--border)] pt-3">
-          <p className="flex items-center justify-between text-sm">
-            <span>Total</span>
-            <b className="text-base">{formatRupiah(subtotal)}</b>
-          </p>
-
-          <div>
-            <p className="mb-1 text-sm text-[var(--muted)]">Jumlah Bayar</p>
-            <Input
-              type="number"
-              min={0}
-              value={paidAmount}
-              onChange={(e) => setPaidAmount(Number(e.target.value))}
-            />
+            {cart.map((item) => (
+              <div
+                key={item.productId}
+                className="rounded-xl border border-[var(--border)] bg-[var(--card-solid)] p-3"
+              >
+                <p className="font-medium">{item.name}</p>
+                <div className="mt-2 flex items-center gap-2">
+                  <Input
+                    type="number"
+                    min={1}
+                    max={item.stockQty}
+                    value={item.qty}
+                    onChange={(e) => setQty(item.productId, Number(e.target.value))}
+                  />
+                  <Button variant="danger" size="sm" onClick={() => removeItem(item.productId)}>
+                    Hapus
+                  </Button>
+                </div>
+                <p className="mt-2 text-sm text-[var(--muted)]">
+                  Subtotal: {formatRupiah(item.qty * item.sellingPrice)}
+                </p>
+              </div>
+            ))}
           </div>
 
-          <p className="flex items-center justify-between text-sm">
-            <span>Kembalian</span>
-            <b className="text-base">{formatRupiah(change)}</b>
-          </p>
+          <div className="space-y-3 border-t border-[var(--border)] pt-3">
+            <p className="flex items-center justify-between text-sm">
+              <span>Total</span>
+              <b className="text-base">{formatRupiah(subtotal)}</b>
+            </p>
 
-          <Button className="w-full" onClick={checkout} disabled={pending}>
-            {pending ? "Menyimpan..." : "Simpan Transaksi"}
-          </Button>
-        </div>
-      </Card>
+            <div>
+              <p className="mb-1 text-sm text-[var(--muted)]">Jumlah Bayar</p>
+              <Input
+                type="number"
+                min={0}
+                placeholder="Masukkan uang pelanggan"
+                value={paidAmountInput}
+                onChange={(e) => setPaidAmountInput(e.target.value)}
+              />
+            </div>
 
-      <Card className="lg:col-span-2">
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="font-semibold">Riwayat Transaksi Cabang</h2>
-          <p className="text-xs text-[var(--muted)]">20 transaksi terbaru</p>
-        </div>
+            <p className="flex items-center justify-between text-sm">
+              <span>Kembalian</span>
+              <b className="text-base">{formatRupiah(change)}</b>
+            </p>
 
-        <div className="overflow-auto rounded-xl border border-[var(--border)]">
-          <Table>
-            <THead>
-              <TR>
-                <TH>Waktu</TH>
-                <TH>Worker</TH>
-                <TH className="text-right">Total</TH>
-              </TR>
-            </THead>
-            <TBody>
-              {recentSales.map((sale) => (
-                <TR key={sale.id}>
-                  <TD>{new Date(sale.createdAt).toLocaleString("id-ID")}</TD>
-                  <TD>{sale.workerName}</TD>
-                  <TD className="text-right font-medium">{formatRupiah(sale.totalAmount)}</TD>
-                </TR>
-              ))}
-            </TBody>
-          </Table>
-        </div>
-      </Card>
+            <Button className="w-full" onClick={checkout} disabled={pending}>
+              {pending ? "Menyimpan..." : "Simpan Transaksi"}
+            </Button>
+          </div>
+        </Card>
+
+        <Card className="animate-fade-in">
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="font-semibold">Produk Terjual Hari Ini</h2>
+            <p className="flex items-center gap-1 text-xs text-[var(--muted)]">
+              <CalendarClock size={13} />
+              Auto-update
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            {topSoldProductsToday.length === 0 ? (
+              <p className="text-sm text-[var(--muted)]">Belum ada produk terjual hari ini.</p>
+            ) : null}
+            {topSoldProductsToday.map((item) => (
+              <div
+                key={item.productId}
+                className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--card-solid)] px-3 py-2"
+              >
+                <p className="text-sm">{item.productName}</p>
+                <p className="text-sm font-semibold">{item.qty} pcs</p>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }

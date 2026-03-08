@@ -48,7 +48,7 @@ export default async function SalesPage() {
       </div>
 
       <Card className="animate-fade-in">
-        <h2 className="font-semibold">Grafik Penjualan Cabang (Chart.js)</h2>
+        <h2 className="font-semibold">Grafik Penjualan Cabang</h2>
         <p className="mt-1 text-xs text-[var(--muted)]">
           Centang cabang yang ingin ditampilkan agar analisis owner lebih fokus.
         </p>

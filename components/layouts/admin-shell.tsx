@@ -48,11 +48,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       <section className="min-w-0">
-        <header className="surface sticky top-0 z-30 border-b border-[var(--border)] px-4 py-3 md:px-8">
-          <p className="text-sm text-[var(--muted)]">
-            Ringkasan operasional toko multi-cabang, pembaruan real-time per transaksi.
-          </p>
-        </header>
         <main className="p-4 md:p-8">{children}</main>
       </section>
     </div>

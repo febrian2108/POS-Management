@@ -3,9 +3,9 @@
 import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
-import { createSaleSchema } from "@/lib/validators/sale";
-import { prisma } from "@/lib/prisma";
 import { requireWorker } from "@/lib/auth/session";
+import { prisma } from "@/lib/prisma";
+import { createSaleSchema } from "@/lib/validators/sale";
 
 export async function createSaleAction(payload: unknown) {
   const worker = await requireWorker();
@@ -116,6 +116,7 @@ export async function createSaleAction(payload: unknown) {
   });
 
   revalidatePath("/pos");
+  revalidatePath("/pos/history");
   revalidatePath("/admin/dashboard");
   revalidatePath("/admin/sales");
   revalidatePath("/admin/stocks");

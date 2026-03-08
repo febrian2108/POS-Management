@@ -1,15 +1,19 @@
 import "dotenv/config";
 
-import { defineConfig, env } from "prisma/config";
+import { defineConfig } from "prisma/config";
+
+const migrateUrl = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
+
+if (!migrateUrl) {
+  throw new Error("DATABASE_URL atau DIRECT_URL harus di-set di .env.");
+}
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     seed: "tsx prisma/seed.ts"
   },
-  engine: "classic",
   datasource: {
-    url: env("DATABASE_URL"),
-    directUrl: env("DIRECT_URL")
+    url: migrateUrl
   }
 });

@@ -14,27 +14,27 @@ function applyTheme(theme: ThemeMode) {
 }
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<ThemeMode>("light");
+  const [theme, setTheme] = useState<ThemeMode>(() => {
+    if (typeof document === "undefined") {
+      return "light";
+    }
 
-  useEffect(() => {
     const current = document.documentElement.getAttribute("data-theme");
     if (current === "dark" || current === "light") {
-      setTheme(current);
-      return;
+      return current;
     }
 
     const fromStorage = localStorage.getItem(THEME_KEY);
     if (fromStorage === "dark" || fromStorage === "light") {
-      setTheme(fromStorage);
-      applyTheme(fromStorage);
-      return;
+      return fromStorage;
     }
 
-    const preferredDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const next: ThemeMode = preferredDark ? "dark" : "light";
-    setTheme(next);
-    applyTheme(next);
-  }, []);
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  });
+
+  useEffect(() => {
+    applyTheme(theme);
+  }, [theme]);
 
   const nextTheme: ThemeMode = theme === "dark" ? "light" : "dark";
 
@@ -45,7 +45,6 @@ export function ThemeToggle() {
       size="icon"
       onClick={() => {
         setTheme(nextTheme);
-        applyTheme(nextTheme);
       }}
       aria-label="Ganti tema"
       title="Ganti tema"

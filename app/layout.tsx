@@ -10,6 +10,16 @@ export const metadata: Metadata = {
     index: false,
     follow: false,
     nocache: true
+  },
+  icons: {
+    icon: [
+      {
+        url: "/Icon-POSKU.png",
+        type: "image/png"
+      }
+    ],
+    shortcut: [{ url: "/Icon-POSKU.png", type: "image/png" }],
+    apple: [{ url: "/Icon-POSKU.png", type: "image/png" }]
   }
 };
 
@@ -33,7 +43,6 @@ export default function RootLayout({
   return (
     <html lang="id" suppressHydrationWarning>
       <body className="antialiased">
-        <link rel="shortcut icon" href="/Icon-POSKU.png" type="image/x-icon" />
         <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
         {children}
         <Toaster position="top-right" richColors />
