@@ -13,17 +13,17 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#18485d",
     icons: [
       {
-        src: "/Icon-POSKU.png",
+        src: "/Icon-POSKU-192x192.png",
         sizes: "192x192",
         type: "image/png"
       },
       {
-        src: "/Icon-POSKU.png",
+        src: "/Icon-POSKU-512x512.png",
         sizes: "512x512",
         type: "image/png"
       },
       {
-        src: "/Icon-POSKU.png",
+        src: "/Icon-POSKU-512x512.png",
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable"
