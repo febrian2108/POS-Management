@@ -17,12 +17,13 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: "/Icon-POSKU.png",
+        url: "/Icon-POSKU-192x192.png",
+        sizes: "192x192",
         type: "image/png"
       }
     ],
-    shortcut: [{ url: "/Icon-POSKU.png", type: "image/png" }],
-    apple: [{ url: "/Icon-POSKU.png", type: "image/png" }]
+    shortcut: [{ url: "/Icon-POSKU-192x192.png", sizes: "192x192", type: "image/png" }],
+    apple: [{ url: "/Icon-POSKU-192x192.png", sizes: "192x192", type: "image/png" }]
   }
 };
 

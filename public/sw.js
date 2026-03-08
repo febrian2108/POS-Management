@@ -1,8 +1,8 @@
-const CACHE_VERSION = "posku-v1";
+const CACHE_VERSION = "posku-v2";
 const APP_SHELL_CACHE = `app-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `runtime-${CACHE_VERSION}`;
 
-const APP_SHELL_ASSETS = ["/", "/offline", "/manifest.webmanifest", "/Icon-POSKU.png"];
+const APP_SHELL_ASSETS = ["/", "/offline"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -29,6 +29,14 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
 
   if (request.method !== "GET" || url.origin !== self.location.origin) return;
+  if (
+    url.pathname === "/manifest.webmanifest" ||
+    url.pathname.startsWith("/Icon-POSKU") ||
+    url.pathname.startsWith("/screenshot/")
+  ) {
+    event.respondWith(fetch(request).catch(() => caches.match(request)));
+    return;
+  }
 
   const isDocument = request.mode === "navigate";
 

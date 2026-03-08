@@ -32,7 +32,7 @@ export default function manifest(): MetadataRoute.Manifest {
     screenshots: [
       {
         src: "/screenshot/desktop/Dashboard-owner-pos-desktop.png",
-        sizes: "1920x1080",
+        sizes: "1905x1080",
         type: "image/png",
         form_factor: "wide",
         label: "Dashboard Owner POSKU (Desktop)"
