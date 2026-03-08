@@ -10,7 +10,7 @@ export default function HomePage() {
           <div>
             <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">Multi Branch Retail Suite</p>
             <h1 className="mt-2 text-3xl font-semibold leading-tight md:text-4xl">
-              POS Management untuk Toko Kelontong
+              POSKU untuk Toko Kelontong
             </h1>
           </div>
           <ThemeToggle />

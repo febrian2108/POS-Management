@@ -1,7 +1,7 @@
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import { createCategoryAction } from "@/lib/actions/admin";
 import { requireOwner } from "@/lib/auth/session";
@@ -21,7 +21,7 @@ export default async function CategoriesPage() {
         <p className="text-sm text-[var(--muted)]">Klasifikasikan produk agar pencarian dan pelaporan lebih cepat.</p>
       </div>
 
-      <Card>
+      <Card className="animate-fade-in">
         <h2 className="font-semibold">Tambah Kategori</h2>
         <form action={createCategoryAction} className="mt-4 grid gap-3 md:grid-cols-3">
           <div>
@@ -33,12 +33,12 @@ export default async function CategoriesPage() {
             <Input name="description" />
           </div>
           <div className="md:col-span-3">
-            <Button type="submit">Simpan</Button>
+            <SubmitButton>Simpan Kategori</SubmitButton>
           </div>
         </form>
       </Card>
 
-      <Card>
+      <Card className="animate-fade-in">
         <div className="overflow-auto rounded-xl border border-[var(--border)]">
           <Table>
             <THead>

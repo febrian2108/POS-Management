@@ -1,3 +1,4 @@
+import { BranchSalesChart } from "@/components/admin/branch-sales-chart";
 import { Card } from "@/components/ui/card";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import { requireOwner } from "@/lib/auth/session";
@@ -7,7 +8,7 @@ import { formatRupiah } from "@/lib/utils";
 export default async function SalesPage() {
   const owner = await requireOwner();
 
-  const [sales, summaryByBranch] = await Promise.all([
+  const [sales, summaryByBranch, branches] = await Promise.all([
     prisma.sale.findMany({
       where: { ownerId: owner.id },
       include: { branch: true, worker: true, items: true },
@@ -19,40 +20,60 @@ export default async function SalesPage() {
       where: { ownerId: owner.id },
       _sum: { totalAmount: true },
       _count: { id: true }
+    }),
+    prisma.branch.findMany({
+      where: { ownerId: owner.id },
+      select: { id: true, name: true }
     })
   ]);
 
-  const branches = await prisma.branch.findMany({
-    where: { id: { in: summaryByBranch.map((x) => x.branchId) } }
-  });
+  const branchMap = new Map(branches.map((branch) => [branch.id, branch.name]));
+
+  const chartSeries = summaryByBranch
+    .map((item) => ({
+      branchId: item.branchId,
+      branchName: branchMap.get(item.branchId) ?? "Cabang",
+      totalAmount: Number(item._sum.totalAmount ?? 0),
+      transactionCount: item._count.id
+    }))
+    .sort((a, b) => b.totalAmount - a.totalAmount);
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Riwayat Penjualan</h1>
-        <p className="text-sm text-[var(--muted)]">Lihat histori transaksi dan performa tiap cabang.</p>
+        <p className="text-sm text-[var(--muted)]">
+          Analitik penjualan antar cabang dengan visual chart dan filter per cabang.
+        </p>
       </div>
 
-      <Card>
-        <h2 className="font-semibold">Ringkasan Per Cabang</h2>
-        <div className="mt-3 grid gap-3 md:grid-cols-3">
-          {summaryByBranch.map((s) => {
-            const branch = branches.find((b) => b.id === s.branchId);
-            return (
-              <div
-                key={s.branchId}
-                className="rounded-xl border border-[var(--border)] bg-[var(--card-solid)] p-3"
-              >
-                <p className="text-sm text-[var(--muted)]">{branch?.name || "Cabang"}</p>
-                <p className="text-lg font-semibold">{formatRupiah(Number(s._sum.totalAmount || 0))}</p>
-                <p className="text-xs text-[var(--muted)]">{s._count.id} transaksi</p>
-              </div>
-            );
-          })}
+      <Card className="animate-fade-in">
+        <h2 className="font-semibold">Grafik Penjualan Cabang (Chart.js)</h2>
+        <p className="mt-1 text-xs text-[var(--muted)]">
+          Centang cabang yang ingin ditampilkan agar analisis owner lebih fokus.
+        </p>
+        <div className="mt-4">
+          <BranchSalesChart data={chartSeries} />
         </div>
       </Card>
 
-      <Card>
+      <Card className="animate-fade-in">
+        <h2 className="font-semibold">Ringkasan Per Cabang</h2>
+        <div className="mt-3 grid gap-3 md:grid-cols-3">
+          {chartSeries.map((series) => (
+            <div
+              key={series.branchId}
+              className="rounded-xl border border-[var(--border)] bg-[var(--card-solid)] p-3"
+            >
+              <p className="text-sm text-[var(--muted)]">{series.branchName}</p>
+              <p className="text-lg font-semibold">{formatRupiah(series.totalAmount)}</p>
+              <p className="text-xs text-[var(--muted)]">{series.transactionCount} transaksi</p>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      <Card className="animate-fade-in">
         <div className="overflow-auto rounded-xl border border-[var(--border)]">
           <Table>
             <THead>

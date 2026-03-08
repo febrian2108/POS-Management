@@ -1,33 +1,33 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f4f6f8;
+  --background: #f2f5f8;
   --background-elevated: #ffffff;
-  --foreground: #111827;
-  --card: rgba(255, 255, 255, 0.78);
+  --foreground: #111a24;
+  --card: rgba(255, 255, 255, 0.82);
   --card-solid: #ffffff;
-  --muted: #64748b;
-  --border: #d8e1ea;
-  --primary: #1f4f63;
-  --primary-foreground: #eff7fb;
-  --primary-soft: #e0edf3;
+  --muted: #5f7084;
+  --border: #d5dee8;
+  --primary: #18485d;
+  --primary-foreground: #edf6fb;
+  --primary-soft: #e2ebf1;
   --danger: #b42318;
-  --ring: rgba(31, 79, 99, 0.35);
+  --ring: rgba(24, 72, 93, 0.34);
 }
 
 [data-theme="dark"] {
-  --background: #0f1720;
-  --background-elevated: #121b26;
-  --foreground: #e7edf5;
-  --card: rgba(18, 27, 38, 0.86);
+  --background: #0d1520;
+  --background-elevated: #121c28;
+  --foreground: #e3ebf4;
+  --card: rgba(18, 28, 40, 0.88);
   --card-solid: #111b27;
-  --muted: #93a4b9;
-  --border: #243345;
-  --primary: #6fb3c9;
-  --primary-foreground: #09202d;
-  --primary-soft: #163448;
-  --danger: #ef6f6c;
-  --ring: rgba(111, 179, 201, 0.35);
+  --muted: #8fa1b8;
+  --border: #223447;
+  --primary: #7baec1;
+  --primary-foreground: #07202d;
+  --primary-soft: #183547;
+  --danger: #ef7a74;
+  --ring: rgba(123, 174, 193, 0.36);
 }
 
 * {
@@ -43,8 +43,8 @@ body {
   margin: 0;
   color: var(--foreground);
   background:
-    radial-gradient(1200px 500px at 15% -10%, color-mix(in oklab, var(--primary) 8%, transparent), transparent),
-    radial-gradient(900px 400px at 90% 0%, color-mix(in oklab, var(--primary) 6%, transparent), transparent),
+    radial-gradient(1200px 480px at 12% -12%, color-mix(in oklab, var(--primary) 10%, transparent), transparent),
+    radial-gradient(960px 420px at 92% -8%, color-mix(in oklab, var(--primary) 7%, transparent), transparent),
     var(--background);
 }
 
@@ -66,7 +66,38 @@ button:focus-visible {
   box-shadow: 0 0 0 3px var(--ring);
 }
 
+button,
+a {
+  transition: transform 160ms ease, background-color 160ms ease, color 160ms ease, opacity 160ms ease;
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
 .surface {
   background: var(--card);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(9px);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeInUp 420ms ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
 }

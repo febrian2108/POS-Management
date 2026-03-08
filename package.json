@@ -1,5 +1,5 @@
 {
-  "name": "pos-management",
+  "name": "posku",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -21,11 +21,13 @@
     "@radix-ui/react-select": "^2.2.5",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.58.0",
+    "chart.js": "^4.5.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.552.0",
     "next": "^16.0.0",
     "react": "^19.2.0",
+    "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.2.0",
     "react-hook-form": "^7.65.0",
     "sonner": "^2.0.7",

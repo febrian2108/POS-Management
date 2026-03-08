@@ -76,7 +76,8 @@ export async function getDashboardStats(ownerId: string) {
         name: true,
         sku: true,
         sellingPrice: true,
-        purchasePrice: true
+        purchasePrice: true,
+        isActive: true
       }
     })
   ]);
@@ -143,6 +144,10 @@ export async function getDashboardStats(ownerId: string) {
   const totalGrossProfit = productProfit.reduce((acc, item) => acc + item.keuntunganKeluar, 0);
   const totalInventoryValue = productProfit.reduce((acc, item) => acc + item.nilaiMasuk, 0);
 
+  const activeProductCount = products.filter((item) => item.isActive).length;
+  const inactiveProductCount = products.length - activeProductCount;
+  const outOfStockProductCount = products.filter((item) => (stockByProductMap.get(item.id) ?? 0) <= 0).length;
+
   return {
     branchCount,
     productCount,
@@ -150,6 +155,9 @@ export async function getDashboardStats(ownerId: string) {
     salesCount: totalSalesAgg._count.id,
     salesAmount: Number(totalSalesAgg._sum.totalAmount || 0),
     soldItems: Number(saleItemsAgg._sum.qty || 0),
+    activeProductCount,
+    inactiveProductCount,
+    outOfStockProductCount,
     totalGrossProfit,
     totalInventoryValue,
     lowStocks,

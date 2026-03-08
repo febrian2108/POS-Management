@@ -4,8 +4,13 @@ import { Toaster } from "sonner";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "POS Management",
-  description: "Aplikasi POS multi-cabang untuk toko kelontong"
+  title: "POSKU",
+  description: "Aplikasi internal POSKU untuk manajemen toko multi-cabang.",
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true
+  }
 };
 
 const themeBootstrapScript = `(() => {
@@ -28,6 +33,7 @@ export default function RootLayout({
   return (
     <html lang="id" suppressHydrationWarning>
       <body className="antialiased">
+        <link rel="shortcut icon" href="/Icon-POSKU.png" type="image/x-icon" />
         <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
         {children}
         <Toaster position="top-right" richColors />

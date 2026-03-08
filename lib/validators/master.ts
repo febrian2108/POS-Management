@@ -1,9 +1,17 @@
 import { z } from "zod";
 
+export const idSchema = z.object({
+  id: z.string().uuid()
+});
+
 export const branchSchema = z.object({
   name: z.string().min(2),
   code: z.string().min(2),
   address: z.string().optional()
+});
+
+export const branchUpdateSchema = branchSchema.extend({
+  branchId: z.string().uuid()
 });
 
 export const categorySchema = z.object({
@@ -21,6 +29,10 @@ export const productSchema = z.object({
   isActive: z.coerce.boolean().default(true)
 });
 
+export const productUpdateSchema = productSchema.extend({
+  productId: z.string().uuid()
+});
+
 export const workerSchema = z.object({
   fullName: z.string().min(2),
   email: z.string().email(),
@@ -31,6 +43,12 @@ export const workerSchema = z.object({
 export const stockSchema = z.object({
   branchId: z.string().uuid(),
   productId: z.string().uuid(),
+  stockQty: z.coerce.number().int().nonnegative(),
+  minStock: z.coerce.number().int().nonnegative()
+});
+
+export const stockUpdateSchema = z.object({
+  stockId: z.string().uuid(),
   stockQty: z.coerce.number().int().nonnegative(),
   minStock: z.coerce.number().int().nonnegative()
 });

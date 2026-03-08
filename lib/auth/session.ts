@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 
+import { ROLES, type AppRole } from "@/lib/constants/roles";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
-import { ROLES, type AppRole } from "@/lib/constants/roles";
 
 export async function getCurrentUser() {
   const supabase = await createClient();
@@ -27,7 +27,7 @@ export async function getCurrentUser() {
 export async function requireUser(role?: AppRole) {
   const dbUser = await getCurrentUser();
 
-  if (!dbUser) {
+  if (!dbUser || !dbUser.isActive) {
     if (role === ROLES.WORKER) redirect("/login-worker");
     redirect("/login-owner");
   }

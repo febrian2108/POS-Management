@@ -15,35 +15,47 @@ export default async function AdminDashboardPage() {
       <div>
         <h1 className="text-2xl font-semibold md:text-3xl">Dashboard Owner</h1>
         <p className="mt-1 text-sm text-[var(--muted)]">
-          Pantau performa cabang, stok, dan profit barang masuk/keluar secara terpusat.
+          Ringkasan cepat untuk memahami kondisi operasional toko dalam satu layar.
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <Card>
-          <p className="text-sm text-[var(--muted)]">Cabang</p>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <Card className="animate-fade-in">
+          <p className="text-sm text-[var(--muted)]">Jumlah Cabang</p>
           <p className="mt-1 text-2xl font-semibold">{stats.branchCount}</p>
         </Card>
-        <Card>
-          <p className="text-sm text-[var(--muted)]">Produk</p>
+        <Card className="animate-fade-in">
+          <p className="text-sm text-[var(--muted)]">Total Produk</p>
           <p className="mt-1 text-2xl font-semibold">{stats.productCount}</p>
+          <p className="mt-1 text-xs text-[var(--muted)]">
+            Aktif {stats.activeProductCount} - Nonaktif {stats.inactiveProductCount}
+          </p>
         </Card>
-        <Card>
-          <p className="text-sm text-[var(--muted)]">Worker</p>
+        <Card className="animate-fade-in">
+          <p className="text-sm text-[var(--muted)]">Produk Stok Habis</p>
+          <p className="mt-1 text-2xl font-semibold">{stats.outOfStockProductCount}</p>
+          <p className="mt-1 text-xs text-[var(--muted)]">Perlu restok segera untuk menjaga penjualan</p>
+        </Card>
+        <Card className="animate-fade-in">
+          <p className="text-sm text-[var(--muted)]">Jumlah Worker</p>
           <p className="mt-1 text-2xl font-semibold">{stats.workerCount}</p>
         </Card>
-        <Card>
+        <Card className="animate-fade-in">
           <p className="text-sm text-[var(--muted)]">Total Penjualan</p>
           <p className="mt-1 text-2xl font-semibold">{formatRupiah(stats.salesAmount)}</p>
+          <p className="mt-1 text-xs text-[var(--muted)]">{stats.salesCount} transaksi</p>
         </Card>
-        <Card>
+        <Card className="animate-fade-in">
           <p className="text-sm text-[var(--muted)]">Total Keuntungan</p>
           <p className="mt-1 text-2xl font-semibold">{formatRupiah(stats.totalGrossProfit)}</p>
+          <p className="mt-1 text-xs text-[var(--muted)]">
+            Nilai inventori masuk: {formatRupiah(stats.totalInventoryValue)}
+          </p>
         </Card>
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[1.35fr_1fr]">
-        <Card>
+        <Card className="animate-fade-in">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="font-semibold">Grafik Penjualan per Cabang</h2>
             <span className="text-xs text-[var(--muted)]">Berdasarkan nominal transaksi</span>
@@ -77,7 +89,7 @@ export default async function AdminDashboardPage() {
         </Card>
 
         <div className="space-y-4">
-          <Card>
+          <Card className="animate-fade-in">
             <h2 className="font-semibold">Barang Terlaris</h2>
             <div className="mt-3 space-y-2">
               {stats.topProducts.length === 0 ? (
@@ -95,7 +107,7 @@ export default async function AdminDashboardPage() {
             </div>
           </Card>
 
-          <Card>
+          <Card className="animate-fade-in">
             <h2 className="font-semibold">Stok Menipis</h2>
             <div className="mt-3 space-y-2">
               {stats.lowStocks.length === 0 ? (
@@ -119,7 +131,7 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
-      <Card>
+      <Card className="animate-fade-in">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h2 className="font-semibold">Profit Barang Masuk/Keluar</h2>
           <div className="text-xs text-[var(--muted)]">

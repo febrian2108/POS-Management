@@ -21,7 +21,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <div className="flex h-full flex-col p-4">
           <div>
             <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">Owner Console</p>
-            <h2 className="mt-1 text-xl font-semibold">POS Management</h2>
+            <h2 className="mt-1 text-xl font-semibold">POSKU</h2>
           </div>
 
           <nav className="mt-6 grid gap-1">
