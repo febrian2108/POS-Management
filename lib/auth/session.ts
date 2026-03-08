@@ -15,7 +15,11 @@ export async function getCurrentUser() {
   return prisma.user.findUnique({
     where: { id: user.id },
     include: {
-      workerProfile: true
+      workerProfile: {
+        include: {
+          branch: true
+        }
+      }
     }
   });
 }

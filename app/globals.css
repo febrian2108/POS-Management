@@ -1,20 +1,55 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f6f7f8;
-  --foreground: #1f2937;
-  --card: #ffffff;
-  --muted: #6b7280;
-  --border: #e5e7eb;
-  --primary: #1f6f78;
-  --primary-foreground: #f9fafb;
-  --danger: #b91c1c;
+  --background: #f4f6f8;
+  --background-elevated: #ffffff;
+  --foreground: #111827;
+  --card: rgba(255, 255, 255, 0.78);
+  --card-solid: #ffffff;
+  --muted: #64748b;
+  --border: #d8e1ea;
+  --primary: #1f4f63;
+  --primary-foreground: #eff7fb;
+  --primary-soft: #e0edf3;
+  --danger: #b42318;
+  --ring: rgba(31, 79, 99, 0.35);
+}
+
+[data-theme="dark"] {
+  --background: #0f1720;
+  --background-elevated: #121b26;
+  --foreground: #e7edf5;
+  --card: rgba(18, 27, 38, 0.86);
+  --card-solid: #111b27;
+  --muted: #93a4b9;
+  --border: #243345;
+  --primary: #6fb3c9;
+  --primary-foreground: #09202d;
+  --primary-soft: #163448;
+  --danger: #ef6f6c;
+  --ring: rgba(111, 179, 201, 0.35);
+}
+
+* {
+  border-color: var(--border);
+}
+
+html,
+body {
+  min-height: 100%;
 }
 
 body {
-  background: var(--background);
+  margin: 0;
   color: var(--foreground);
-  min-height: 100vh;
+  background:
+    radial-gradient(1200px 500px at 15% -10%, color-mix(in oklab, var(--primary) 8%, transparent), transparent),
+    radial-gradient(900px 400px at 90% 0%, color-mix(in oklab, var(--primary) 6%, transparent), transparent),
+    var(--background);
+}
+
+::selection {
+  background: color-mix(in oklab, var(--primary) 30%, transparent);
 }
 
 input,
@@ -22,4 +57,16 @@ select,
 textarea,
 button {
   outline: none;
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+button:focus-visible {
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
+.surface {
+  background: var(--card);
+  backdrop-filter: blur(8px);
 }

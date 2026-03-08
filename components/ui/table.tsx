@@ -7,7 +7,15 @@ export function Table({ className, ...props }: React.TableHTMLAttributes<HTMLTab
 }
 
 export function THead({ className, ...props }: React.HTMLAttributes<HTMLTableSectionElement>) {
-  return <thead className={cn("bg-gray-50 text-left", className)} {...props} />;
+  return (
+    <thead
+      className={cn(
+        "bg-[color-mix(in_oklab,var(--card-solid)_88%,transparent)] text-left text-[var(--muted)]",
+        className
+      )}
+      {...props}
+    />
+  );
 }
 
 export function TBody({ className, ...props }: React.HTMLAttributes<HTMLTableSectionElement>) {
@@ -19,9 +27,9 @@ export function TR({ className, ...props }: React.HTMLAttributes<HTMLTableRowEle
 }
 
 export function TH({ className, ...props }: React.ThHTMLAttributes<HTMLTableCellElement>) {
-  return <th className={cn("px-3 py-2 font-semibold", className)} {...props} />;
+  return <th className={cn("px-3 py-2 text-xs font-semibold uppercase tracking-wide", className)} {...props} />;
 }
 
 export function TD({ className, ...props }: React.TdHTMLAttributes<HTMLTableCellElement>) {
-  return <td className={cn("px-3 py-2", className)} {...props} />;
+  return <td className={cn("px-3 py-2.5", className)} {...props} />;
 }

@@ -11,9 +11,9 @@ export function Badge({ className, tone = "default", ...props }: BadgeProps) {
     <span
       className={cn(
         "inline-flex rounded-full px-2.5 py-1 text-xs font-medium",
-        tone === "default" && "bg-gray-100 text-gray-700",
-        tone === "warning" && "bg-amber-100 text-amber-700",
-        tone === "success" && "bg-emerald-100 text-emerald-700",
+        tone === "default" && "bg-[var(--primary-soft)] text-[var(--foreground)]",
+        tone === "warning" && "bg-[color-mix(in_oklab,#f59e0b_25%,transparent)] text-amber-900",
+        tone === "success" && "bg-[color-mix(in_oklab,#10b981_22%,transparent)] text-emerald-900",
         className
       )}
       {...props}
