@@ -208,7 +208,12 @@ export function PosTerminal({
   }, [products, query]);
 
   const subtotal = useMemo(
-    () => cart.reduce((acc, item) => acc + item.qty * item.sellingPrice, 0),
+    () =>
+      cart.reduce(
+        (acc: number, item: { qty: number; sellingPrice: number }) =>
+          acc + item.qty * item.sellingPrice,
+        0
+      ),
     [cart]
   );
 

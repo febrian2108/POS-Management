@@ -65,12 +65,21 @@ export default async function SalesPage() {
           workerId: sale.workerId,
           workerName: sale.worker.fullName,
           totalAmount: Number(sale.totalAmount),
-          itemCount: sale.items.reduce((acc, item) => acc + item.qty, 0),
-          profitAmount: sale.items.reduce((acc, item) => {
+          itemCount: sale.items.reduce(
+            (acc: number, item: { qty: number }) => acc + item.qty,
+            0
+          ),
+          profitAmount: sale.items.reduce(
+            (
+              acc: number,
+              item: { qty: number; sellingPrice: unknown; product: { purchasePrice: unknown } }
+            ) => {
             const purchase = Number(item.product.purchasePrice);
             const sell = Number(item.sellingPrice);
             return acc + (sell - purchase) * item.qty;
-          }, 0)
+            },
+            0
+          )
         }))}
       />
     </div>

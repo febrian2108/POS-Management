@@ -391,8 +391,14 @@ export async function getDashboardStats(ownerId: string): Promise<DashboardStats
     })
     .sort((a, b) => b.keuntunganKeluar - a.keuntunganKeluar);
 
-  const totalGrossProfit = productProfit.reduce((acc, item) => acc + item.keuntunganKeluar, 0);
-  const totalInventoryValue = productProfit.reduce((acc, item) => acc + item.nilaiMasuk, 0);
+  const totalGrossProfit = productProfit.reduce(
+    (acc: number, item: { keuntunganKeluar: number }) => acc + item.keuntunganKeluar,
+    0
+  );
+  const totalInventoryValue = productProfit.reduce(
+    (acc: number, item: { nilaiMasuk: number }) => acc + item.nilaiMasuk,
+    0
+  );
 
   const activeProductCount = products.filter((item) => item.isActive).length;
   const inactiveProductCount = products.length - activeProductCount;

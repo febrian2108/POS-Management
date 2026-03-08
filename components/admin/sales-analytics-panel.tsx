@@ -156,17 +156,17 @@ export function SalesAnalyticsPanel({
   }, [branches, filteredSales]);
 
   const totalAmount = useMemo(
-    () => filteredSales.reduce((acc, row) => acc + row.totalAmount, 0),
+    () => filteredSales.reduce((acc: number, row) => acc + row.totalAmount, 0),
     [filteredSales]
   );
 
   const totalProfit = useMemo(
-    () => filteredSales.reduce((acc, row) => acc + row.profitAmount, 0),
+    () => filteredSales.reduce((acc: number, row) => acc + row.profitAmount, 0),
     [filteredSales]
   );
 
   const totalItems = useMemo(
-    () => filteredSales.reduce((acc, row) => acc + row.itemCount, 0),
+    () => filteredSales.reduce((acc: number, row) => acc + row.itemCount, 0),
     [filteredSales]
   );
 

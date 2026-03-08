@@ -71,7 +71,7 @@ export function WorkerHistoryFilterTable({ sales }: { sales: HistorySale[] }) {
   }, [sales, dateFrom, dateTo, selectedProduct]);
 
   const totalProfit = useMemo(
-    () => filteredSales.reduce((acc, sale) => acc + sale.profit, 0),
+    () => filteredSales.reduce((acc: number, sale) => acc + sale.profit, 0),
     [filteredSales]
   );
 

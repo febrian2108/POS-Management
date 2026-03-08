@@ -48,12 +48,21 @@ export async function getPosData(branchId: string) {
     })
   ]);
 
-  const dailySoldQty = soldItemsToday.reduce((acc, item) => acc + item.qty, 0);
-  const dailyProfit = soldItemsToday.reduce((acc, item) => {
+  const dailySoldQty = soldItemsToday.reduce(
+    (acc: number, item: { qty: number }) => acc + item.qty,
+    0
+  );
+  const dailyProfit = soldItemsToday.reduce(
+    (
+      acc: number,
+      item: { qty: number; sellingPrice: unknown; product: { purchasePrice: unknown } }
+    ) => {
     const buy = Number(item.product.purchasePrice);
     const sell = Number(item.sellingPrice);
     return acc + (sell - buy) * item.qty;
-  }, 0);
+    },
+    0
+  );
 
   return {
     products,
@@ -82,12 +91,21 @@ export async function getPosHistoryData(branchId: string) {
   });
 
   return sales.map((sale) => {
-    const totalItems = sale.items.reduce((acc, item) => acc + item.qty, 0);
-    const profit = sale.items.reduce((acc, item) => {
+    const totalItems = sale.items.reduce(
+      (acc: number, item: { qty: number }) => acc + item.qty,
+      0
+    );
+    const profit = sale.items.reduce(
+      (
+        acc: number,
+        item: { qty: number; sellingPrice: unknown; product: { purchasePrice: unknown } }
+      ) => {
       const purchasePrice = Number(item.product.purchasePrice);
       const sellingPrice = Number(item.sellingPrice);
       return acc + (sellingPrice - purchasePrice) * item.qty;
-    }, 0);
+      },
+      0
+    );
 
     return {
       id: sale.id,
