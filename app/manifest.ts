@@ -41,7 +41,7 @@ export default function manifest(): MetadataRoute.Manifest {
         src: "/screenshot/mobile/dashboard-pos-mobile.png",
         sizes: "377x669",
         type: "image/png",
-        form_factor: "wide",
+        form_factor: "narrow",
         label: "Dashboard POSKU (Mobile)"
       }
     ]
