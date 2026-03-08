@@ -74,7 +74,7 @@ export function PosTerminal({
     [cart]
   );
 
-  const change = Math.max(paidAmount - subtotal, 0);
+  const change = paidAmount - subtotal;
 
   function addToCart(product: PosProduct) {
     setCart((prev) => {

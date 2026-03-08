@@ -12,6 +12,7 @@ import {
   idSchema,
   productSchema,
   productUpdateSchema,
+  stockBulkSchema,
   stockSchema,
   stockUpdateSchema,
   workerSchema
@@ -272,6 +273,68 @@ export async function upsertStockAction(formData: FormData): Promise<void> {
       minStock: parsed.data.minStock
     }
   });
+
+  revalidatePath("/admin/stocks");
+  revalidatePath("/admin/dashboard");
+}
+
+export async function upsertStockBulkAction(formData: FormData): Promise<void> {
+  const owner = await requireOwner();
+
+  const branchIds = formData
+    .getAll("branchIds")
+    .map((item) => String(item))
+    .filter(Boolean);
+
+  const parsed = stockBulkSchema.safeParse({
+    branchIds,
+    productId: formData.get("productId"),
+    stockQty: formData.get("stockQty"),
+    minStock: formData.get("minStock")
+  });
+
+  if (!parsed.success) return;
+
+  const [branches, product] = await Promise.all([
+    prisma.branch.findMany({
+      where: {
+        id: { in: parsed.data.branchIds },
+        ownerId: owner.id
+      },
+      select: { id: true }
+    }),
+    prisma.product.findFirst({
+      where: {
+        id: parsed.data.productId,
+        ownerId: owner.id
+      }
+    })
+  ]);
+
+  if (!product || branches.length !== parsed.data.branchIds.length) return;
+
+  await prisma.$transaction(
+    branches.map((branch) =>
+      prisma.branchStock.upsert({
+        where: {
+          branchId_productId: {
+            branchId: branch.id,
+            productId: parsed.data.productId
+          }
+        },
+        create: {
+          branchId: branch.id,
+          productId: parsed.data.productId,
+          stockQty: parsed.data.stockQty,
+          minStock: parsed.data.minStock
+        },
+        update: {
+          stockQty: parsed.data.stockQty,
+          minStock: parsed.data.minStock
+        }
+      })
+    )
+  );
 
   revalidatePath("/admin/stocks");
   revalidatePath("/admin/dashboard");

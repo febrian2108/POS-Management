@@ -6,7 +6,7 @@ import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import {
   deleteStockAction,
   updateStockAction,
-  upsertStockAction
+  upsertStockBulkAction
 } from "@/lib/actions/admin";
 import { requireOwner } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
@@ -28,53 +28,57 @@ export default async function StocksPage() {
       <div>
         <h1 className="text-2xl font-semibold">Stok Per Cabang</h1>
         <p className="text-sm text-[var(--muted)]">
-          Kontrol minimum stok, edit koreksi input stok, atau hapus data stok yang keliru.
+          Kelola jumlah stok barang untuk setiap cabang dengan langkah yang lebih sederhana.
         </p>
       </div>
 
       <Card className="animate-fade-in">
-        <h2 className="font-semibold">Atur Stok Baru</h2>
-        <form action={upsertStockAction} className="mt-4 grid gap-3 md:grid-cols-5">
+        <h2 className="font-semibold">Tambah Stok Sekaligus ke Banyak Cabang</h2>
+        <p className="mt-1 text-sm text-[var(--muted)]">
+          Pilih produk, isi jumlah stok, lalu centang cabang tujuan. Sistem akan menambahkan/memperbarui
+          stok ke semua cabang yang dipilih.
+        </p>
+        <form action={upsertStockBulkAction} className="mt-4 space-y-4">
+          <div className="grid gap-3 md:grid-cols-3">
+            <div>
+              <Label>Produk</Label>
+              <select
+                name="productId"
+                required
+                className="h-10 w-full rounded-xl border border-[var(--border)] bg-[var(--card-solid)] px-3 text-sm"
+              >
+                <option value="">Pilih produk</option>
+                {products.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <Label>Jumlah Stok</Label>
+              <Input type="number" min={0} name="stockQty" required />
+            </div>
+            <div>
+              <Label>Batas Minimum Stok</Label>
+              <Input type="number" min={0} name="minStock" required />
+            </div>
+          </div>
+
           <div>
-            <Label>Cabang</Label>
-            <select
-              name="branchId"
-              required
-              className="h-10 w-full rounded-xl border border-[var(--border)] bg-[var(--card-solid)] px-3 text-sm"
-            >
-              <option value="">Pilih</option>
-              {branches.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
+            <Label>Pilih Cabang Tujuan</Label>
+            <div className="mt-2 grid gap-2 rounded-xl border border-[var(--border)] bg-[var(--card-solid)] p-3 sm:grid-cols-2 lg:grid-cols-3">
+              {branches.map((branch) => (
+                <label key={branch.id} className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" name="branchIds" value={branch.id} className="h-4 w-4" />
+                  {branch.name}
+                </label>
               ))}
-            </select>
+            </div>
           </div>
-          <div>
-            <Label>Produk</Label>
-            <select
-              name="productId"
-              required
-              className="h-10 w-full rounded-xl border border-[var(--border)] bg-[var(--card-solid)] px-3 text-sm"
-            >
-              <option value="">Pilih</option>
-              {products.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <Label>Stok Qty</Label>
-            <Input type="number" min={0} name="stockQty" required />
-          </div>
-          <div>
-            <Label>Min Stok</Label>
-            <Input type="number" min={0} name="minStock" required />
-          </div>
+
           <div className="flex items-end">
-            <SubmitButton>Simpan Stok</SubmitButton>
+            <SubmitButton>Simpan ke Cabang Terpilih</SubmitButton>
           </div>
         </form>
       </Card>
@@ -86,8 +90,8 @@ export default async function StocksPage() {
               <TR>
                 <TH>Cabang</TH>
                 <TH>Produk</TH>
-                <TH>Qty</TH>
-                <TH>Min</TH>
+                <TH>Stok</TH>
+                <TH>Batas Min</TH>
                 <TH>Aksi</TH>
               </TR>
             </THead>
@@ -105,7 +109,7 @@ export default async function StocksPage() {
                         <Input name="stockQty" type="number" min={0} defaultValue={row.stockQty} className="w-24" required />
                         <Input name="minStock" type="number" min={0} defaultValue={row.minStock} className="w-24" required />
                         <SubmitButton size="sm" loadingText="Menyimpan...">
-                          Edit
+                          Simpan
                         </SubmitButton>
                       </form>
 

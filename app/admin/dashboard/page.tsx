@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
+import { DashboardBranchLineChart } from "@/components/admin/dashboard-branch-line-chart";
+import { ProductProfitTable } from "@/components/admin/product-profit-table";
 import { Card } from "@/components/ui/card";
-import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import { requireOwner } from "@/lib/auth/session";
 import { getDashboardStats } from "@/lib/services/admin";
 import { formatRupiah } from "@/lib/utils";
@@ -8,7 +9,6 @@ import { formatRupiah } from "@/lib/utils";
 export default async function AdminDashboardPage() {
   const owner = await requireOwner();
   const stats = await getDashboardStats(owner.id);
-  const maxBranchSales = Math.max(...stats.branchSales.map((row) => row.totalAmount), 1);
 
   return (
     <div className="space-y-6">
@@ -57,35 +57,10 @@ export default async function AdminDashboardPage() {
       <div className="grid gap-4 xl:grid-cols-[1.35fr_1fr]">
         <Card className="animate-fade-in">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-semibold">Grafik Penjualan per Cabang</h2>
-            <span className="text-xs text-[var(--muted)]">Berdasarkan nominal transaksi</span>
+            <h2 className="font-semibold">Tren Penjualan 14 Hari (Grafik Garis)</h2>
+            <span className="text-xs text-[var(--muted)]">Warna garis berbeda untuk tiap cabang</span>
           </div>
-
-          <div className="space-y-3">
-            {stats.branchSales.length === 0 ? (
-              <p className="text-sm text-[var(--muted)]">Belum ada transaksi untuk divisualisasikan.</p>
-            ) : null}
-
-            {stats.branchSales.map((row) => {
-              const widthPercent = Math.max((row.totalAmount / maxBranchSales) * 100, 4);
-              return (
-                <div key={row.branchId} className="space-y-1.5">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium">{row.branchName}</span>
-                    <span className="text-[var(--muted)]">
-                      {formatRupiah(row.totalAmount)} ({row.transactionCount} trx)
-                    </span>
-                  </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--primary-soft)]">
-                    <div
-                      className="h-full rounded-full bg-[var(--primary)]"
-                      style={{ width: `${widthPercent}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <DashboardBranchLineChart trend={stats.branchSalesTrend} />
         </Card>
 
         <div className="space-y-4">
@@ -138,36 +113,7 @@ export default async function AdminDashboardPage() {
             Nilai Masuk: {formatRupiah(stats.totalInventoryValue)}
           </div>
         </div>
-
-        <div className="overflow-auto rounded-xl border border-[var(--border)]">
-          <Table>
-            <THead>
-              <TR>
-                <TH>Produk</TH>
-                <TH>Qty Masuk</TH>
-                <TH>Nilai Masuk</TH>
-                <TH>Qty Keluar</TH>
-                <TH>Nilai Keluar</TH>
-                <TH>Keuntungan</TH>
-              </TR>
-            </THead>
-            <TBody>
-              {stats.productProfit.slice(0, 14).map((row) => (
-                <TR key={row.productId}>
-                  <TD>
-                    <p className="font-medium">{row.productName}</p>
-                    <p className="text-xs text-[var(--muted)]">{row.sku}</p>
-                  </TD>
-                  <TD>{row.qtyMasuk}</TD>
-                  <TD>{formatRupiah(row.nilaiMasuk)}</TD>
-                  <TD>{row.qtyKeluar}</TD>
-                  <TD>{formatRupiah(row.nilaiKeluar)}</TD>
-                  <TD className="font-medium">{formatRupiah(row.keuntunganKeluar)}</TD>
-                </TR>
-              ))}
-            </TBody>
-          </Table>
-        </div>
+        <ProductProfitTable rows={stats.productProfit} />
       </Card>
     </div>
   );

@@ -1,6 +1,11 @@
 import { prisma } from "@/lib/prisma";
 
 export async function getDashboardStats(ownerId: string) {
+  const trendDays = 14;
+  const trendStart = new Date();
+  trendStart.setHours(0, 0, 0, 0);
+  trendStart.setDate(trendStart.getDate() - (trendDays - 1));
+
   const [
     branchCount,
     productCount,
@@ -13,7 +18,8 @@ export async function getDashboardStats(ownerId: string) {
     saleAggByProduct,
     stockAggByProduct,
     branches,
-    products
+    products,
+    salesTrendRows
   ] = await Promise.all([
     prisma.branch.count({ where: { ownerId } }),
     prisma.product.count({ where: { ownerId } }),
@@ -79,6 +85,17 @@ export async function getDashboardStats(ownerId: string) {
         purchasePrice: true,
         isActive: true
       }
+    }),
+    prisma.sale.findMany({
+      where: {
+        ownerId,
+        createdAt: { gte: trendStart }
+      },
+      select: {
+        branchId: true,
+        totalAmount: true,
+        createdAt: true
+      }
     })
   ]);
 
@@ -101,6 +118,42 @@ export async function getDashboardStats(ownerId: string) {
       transactionCount: item._count.id
     }))
     .sort((a, b) => b.totalAmount - a.totalAmount);
+
+  const dayKeys: string[] = [];
+  const dayLabels: string[] = [];
+  const dateFormatter = new Intl.DateTimeFormat("id-ID", {
+    day: "2-digit",
+    month: "short"
+  });
+
+  for (let i = 0; i < trendDays; i += 1) {
+    const d = new Date(trendStart);
+    d.setDate(trendStart.getDate() + i);
+    dayKeys.push(d.toISOString().slice(0, 10));
+    dayLabels.push(dateFormatter.format(d));
+  }
+
+  const dayIndexMap = new Map(dayKeys.map((key, idx) => [key, idx]));
+  const branchTrendMap = new Map(
+    branches.map((branch) => [branch.id, new Array<number>(trendDays).fill(0)])
+  );
+
+  for (const row of salesTrendRows) {
+    const dayKey = row.createdAt.toISOString().slice(0, 10);
+    const dayIndex = dayIndexMap.get(dayKey);
+    const dataPoints = branchTrendMap.get(row.branchId);
+    if (dayIndex === undefined || !dataPoints) continue;
+    dataPoints[dayIndex] += Number(row.totalAmount);
+  }
+
+  const branchSalesTrend = {
+    labels: dayLabels,
+    series: branches.map((branch) => ({
+      branchId: branch.id,
+      branchName: branch.name,
+      data: branchTrendMap.get(branch.id) ?? new Array<number>(trendDays).fill(0)
+    }))
+  };
 
   const saleByProductMap = new Map(
     saleAggByProduct.map((item) => [
@@ -132,6 +185,7 @@ export async function getDashboardStats(ownerId: string) {
         productId: product.id,
         productName: product.name,
         sku: product.sku,
+        isActive: product.isActive,
         qtyMasuk,
         nilaiMasuk,
         qtyKeluar,
@@ -163,6 +217,7 @@ export async function getDashboardStats(ownerId: string) {
     lowStocks,
     topProducts,
     branchSales,
+    branchSalesTrend,
     productProfit
   };
 }

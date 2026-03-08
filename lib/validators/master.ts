@@ -47,7 +47,26 @@ export const stockSchema = z.object({
   minStock: z.coerce.number().int().nonnegative()
 });
 
+export const stockBulkSchema = z.object({
+  branchIds: z.array(z.string().uuid()).min(1),
+  productId: z.string().uuid(),
+  stockQty: z.coerce.number().int().nonnegative(),
+  minStock: z.coerce.number().int().nonnegative()
+});
+
 export const stockUpdateSchema = z.object({
+  stockId: z.string().uuid(),
+  stockQty: z.coerce.number().int().nonnegative(),
+  minStock: z.coerce.number().int().nonnegative()
+});
+
+export const workerStockSchema = z.object({
+  productId: z.string().uuid(),
+  stockQty: z.coerce.number().int().nonnegative(),
+  minStock: z.coerce.number().int().nonnegative()
+});
+
+export const workerStockUpdateSchema = z.object({
   stockId: z.string().uuid(),
   stockQty: z.coerce.number().int().nonnegative(),
   minStock: z.coerce.number().int().nonnegative()
